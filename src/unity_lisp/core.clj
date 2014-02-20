@@ -22,11 +22,11 @@
      <emptymap> = lcurly rcurly
      whitespace = #'\\s+'
      infix-operator = #'[\\+\\*\\/\\-]+' | 'is' | 'as'
-     word = #'[a-zA-Z!?.]+'
+     word = #'[a-zA-Z!?.]*[a-zA-Z!?.0-9]+'
      string = <quote> #'[a-zA-Z!?10-9]+' <quote>
      quote = '\"'
      comment = #';.*'
-     number = #'[0-9]+'"))
+     number = #'[0-9]+.*[0-9]*'"))
 
 ;; All these functions takes and returns strings
 (defn with-indent [code]
@@ -60,6 +60,8 @@
 (defn let-statement [bindings body]
   (format "function() {\n%s\n%s\n}();" bindings body))
 
+(defn new-statement [type-name arglist]
+  (format "new %s(%s)" type-name arglist))
 
 
 ;; Pattern matching functions (takes parts of ASTs and generates js-strings)
@@ -74,6 +76,8 @@
   (match l
          [[:word "set!"] [:word variable] form] (assign variable (match-form form))
          [[:word "def"] [:word variable] form] (define variable (match-form form))
+         [[:word "import"] [:word lib]] (str "import " lib)
+         [[:word "new"] [:word type-name] & args] (new-statement type-name (match-args args))
          [[:infix-operator op] a b] (infix op (match-form a) (match-form b))
          [[:word "fn"] [:vector & args] & body] (fn-def (match-args args) (match-body body false))
          [[:word "fn"] [:word fn-name] [:vector & args] & body] (named-fn-def fn-name (match-args args) (match-body body false))
@@ -128,8 +132,9 @@
     (str "/*\n" (pr-str tree) "\n*/")
     (let [[head & forms] tree]
       (assert (= head :program))
-      (let [js-forms (map match-form forms)]
-        (clojure.string/join "\n\n" js-forms)))))
+      (let [js-forms (map match-form forms)
+            with-semicolons (map #(str % ";") js-forms)]
+        (clojure.string/join "\n\n" with-semicolons)))))
 
 (defn lisp->js
   "Convert lisp to js (string -> string)"
@@ -143,6 +148,7 @@
 (defn process-path [path]
   (->> (slurp path)
       lisp->js
+      (str "import core;\n\n")
       (spit (clj-to-js-path path))))
 
 (defn clj? [path]
