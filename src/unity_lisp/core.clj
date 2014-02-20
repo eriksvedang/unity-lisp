@@ -71,6 +71,7 @@
 (declare match-body)
 (declare match-vector)
 (declare match-bindings)
+(declare match-map)
 
 (defn match-list [l]
   (match l
@@ -85,10 +86,13 @@
          [[:word "if"] conditional body else-body] (if-statement (match-form conditional) (match-form body) (match-form else-body))
          [[:word "let"] [:vector & bindings] & body] (let-statement (match-bindings bindings) (match-body body false))
          [f & args] (fn-call (match-form f) (match-args args))
-         :else (str "//Failed to match list " (str l))))
+         :else (str "/* Failed to match list " (str l) "*/")))
 
 (defn match-vector [v]
   (format "[%s]" (clojure.string/join ", " (map match-form v))))
+
+(defn match-map [m]
+  (format "{%s}" (clojure.string/join ", " (map #(clojure.string/join ": " %) (partition 2 (map match-form m))))))
 
 (defn match-args [args]
   (clojure.string/join ", " (map match-form args)))
@@ -103,7 +107,7 @@
 (defn match-binding [b]
   (match (vec b)
          [[:word variable] form] (assign variable (match-form form))
-         :else (str "// Failed to match binding " b)))
+         :else (str "/* Failed to match binding " b " */")))
 
 (defn match-bindings [bindings]
   (clojure.string/join "\n"
@@ -118,8 +122,9 @@
            [:string s] (str "\"" s "\"")
            [:vector & v] (match-vector v)
            [:list & l] (match-list l)
+           [:map & m] (match-map m)
            ;[:comment text] (str "")
-           :else (str "//Failed to match form " (str form))))
+           :else (str "/* Failed to match form " form " */")))
 
 
 

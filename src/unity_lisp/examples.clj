@@ -65,6 +65,9 @@
 
 (lisp->js "(let [a 10 b 20] a)")
 
+(lisp->js "{}")
+(lisp->js "{a 3}")
+(lisp->js "{a 3 b 4}")
 
 
 ;(watch "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp")
