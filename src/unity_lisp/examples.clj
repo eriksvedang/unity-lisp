@@ -27,8 +27,8 @@
 (p "\"erik\"")
 
 (p "{a 10}")
-
-
+(p "erik ; hej pa dig\nsvej")
+(p "hej.hej")
 
 
 ; Code generation

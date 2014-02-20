@@ -6,7 +6,7 @@
 (def p
   (insta/parser
     "program = (form <whitespace>*)*
-     <form> = token | list | vector | map | comment
+     <form> = token | list | vector | map | <comment>
      list = (lparen (<whitespace>* form <whitespace>*)* rparen) | emptylist
      vector = (lsquarebrack form (<whitespace> form)* rsquarebrack) | emptyvec
      map = (lcurly form (<whitespace> form)* rcurly) | emptymap
@@ -22,7 +22,7 @@
      <emptymap> = lcurly rcurly
      whitespace = #'\\s+'
      infix-operator = #'[\\+\\*\\/\\-]+' | 'is' | 'as'
-     word = #'[a-zA-Z!?]+'
+     word = #'[a-zA-Z!?.]+'
      string = <quote> #'[a-zA-Z!?10-9]+' <quote>
      quote = '\"'
      comment = #';.*'
@@ -34,10 +34,10 @@
    (map #(str "\t" %) (clojure.string/split code #"\n"))))
 
 (defn assign [variable code]
-  (format "%s = %s;" variable code))
+  (format "%s = %s" variable code))
 
 (defn define [variable code]
-  (format "var %s = %s;" variable code))
+  (format "var %s = %s" variable code))
 
 (defn infix [op a b]
   (format "%s %s %s" a op b))
@@ -75,10 +75,11 @@
          [[:word "set!"] [:word variable] form] (assign variable (match-form form))
          [[:word "def"] [:word variable] form] (define variable (match-form form))
          [[:infix-operator op] a b] (infix op (match-form a) (match-form b))
-         [[:word "fn"] [:vector & args] & body] (fn-def (match-args args) (match-body body))
-         [[:word "fn"] [:word fn-name] [:vector & args] & body] (named-fn-def fn-name (match-args args) (match-body body))
+         [[:word "fn"] [:vector & args] & body] (fn-def (match-args args) (match-body body false))
+         [[:word "fn"] [:word fn-name] [:vector & args] & body] (named-fn-def fn-name (match-args args) (match-body body false))
+         [[:word "void"] [:word fn-name] [:vector & args] & body] (named-fn-def fn-name (match-args args) (match-body body true))
          [[:word "if"] conditional body else-body] (if-statement (match-form conditional) (match-form body) (match-form else-body))
-         [[:word "let"] [:vector & bindings] & body] (let-statement (match-bindings bindings) (match-body body))
+         [[:word "let"] [:vector & bindings] & body] (let-statement (match-bindings bindings) (match-body body false))
          [f & args] (fn-call (match-form f) (match-args args))
          :else (str "//Failed to match list " (str l))))
 
@@ -88,10 +89,12 @@
 (defn match-args [args]
   (clojure.string/join ", " (map match-form args)))
 
-(defn match-body [body]
+(defn match-body [body is-void]
   (clojure.string/join ";\n"
                        (concat (map #(with-indent (match-form %)) (butlast body))
-                               [(with-indent (return (match-form (last body))))])))
+                               [(with-indent (if is-void
+                                               (str (match-form (last body)) ";")
+                                               (return (match-form (last body)))))])))
 
 (defn match-binding [b]
   (match (vec b)
