@@ -1,4 +1,5 @@
 (ns unity-lisp.core
+  (:gen-class)
   (:require [instaparse.core :as insta]
             [clojure-watch.core :refer [start-watch]]
             [clojure.core.match :refer [match]]))
@@ -173,4 +174,6 @@
                  :callback on-file-event
                  :options {:recursive true}}]))
 
-
+(defn -main [& args]
+  (let [path (if (< 0 (count args)) (first args) "./")]
+    (watch path)))
