@@ -6,8 +6,8 @@
 (def p
   (insta/parser
     "program = (form <whitespace>*)*
-     <form> = token | list | vector | map
-     list = (lparen form (<whitespace> form)* rparen) | emptylist
+     <form> = token | list | vector | map | comment
+     list = (lparen (<whitespace>* form <whitespace>*)* rparen) | emptylist
      vector = (lsquarebrack form (<whitespace> form)* rsquarebrack) | emptyvec
      map = (lcurly form (<whitespace> form)* rcurly) | emptymap
      <lparen> = <'('>
@@ -25,6 +25,7 @@
      word = #'[a-zA-Z!?]+'
      string = <quote> #'[a-zA-Z!?10-9]+' <quote>
      quote = '\"'
+     comment = #';.*'
      number = #'[0-9]+'"))
 
 ;; All these functions takes and returns strings
@@ -103,12 +104,14 @@
 
 (defn match-form [form]
     (match form
-           nil "// Form is nil"
+           nil "null"
+           [:word "nil"] "null"
            [:word x] x
            [:number n] n
            [:string s] (str "\"" s "\"")
            [:vector & v] (match-vector v)
            [:list & l] (match-list l)
+           ;[:comment text] (str "")
            :else (str "//Failed to match form " (str form))))
 
 
@@ -119,7 +122,7 @@
   "Takes an AST (from instaparse) and returns js code as a string"
   [tree]
   (if (= (class tree) instaparse.gll.Failure)
-    tree
+    (str "/*\n" (pr-str tree) "\n*/")
     (let [[head & forms] tree]
       (assert (= head :program))
       (let [js-forms (map match-form forms)]
@@ -131,21 +134,29 @@
   (let [tree (p code)]
     (tree->js tree)))
 
+(defn clj-to-js-path [clj-path]
+  (clojure.string/replace clj-path #".clj" ".js"))
 
+(defn process-path [path]
+  (->> (slurp path)
+      lisp->js
+      (spit (clj-to-js-path path))))
 
+(defn clj? [path]
+  (re-find #".clj" path))
 
+(defn on-file-event [event path]
+  (println event path)
+  (if (or (= event :create) (= event :modify))
+    (if (clj? path)
+      (process-path path)
+      (println "Not a .clj file"))))
 
-
-
-
-
-
-
-
-;; (start-watch [{:path "/Users/erik/Desktop"
-;;                :event-types [:create :modify :delete]
-;;                :bootstrap (fn [path] (println "Starting to watch " path))
-;;                :callback (fn [event filename] (println event filename))
-;;                :options {:recursive true}}])
+(defn watch [path]
+  (start-watch [{:path path
+                 :event-types [:create :modify :delete]
+                 :bootstrap (fn [path] (println "Starting to watch " path))
+                 :callback on-file-event
+                 :options {:recursive true}}]))
 
 

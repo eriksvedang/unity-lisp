@@ -1,5 +1,11 @@
 (use 'unity-lisp.core)
 
+(defn spit-and-print [s]
+  (do
+    (spit "out.js" s)
+    s))
+
+
 ;; Grammar
 (p "")
 (p "beta")
@@ -61,26 +67,9 @@
 
 
 
-(defn spit-and-print [s]
-  (do
-    (spit "out.js" s)
-    s))
+;(watch "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp")
 
-;(spit-and-print (lisp->js "(fn [a] a b)"))
-;(spit-and-print (lisp->js "(fn [x y z] (- x y))"))
-;(spit-and-print (lisp->js "(fn foo [a b] 100 200 (f a b))"))
-;(spit-and-print  (lisp->js "(let [a 10 b 20] a)"))
-;(spit-and-print  (lisp->js "(def a (fn [x] (* 100 x)))"))
-;(spit-and-print  (lisp->js "(if true 1 (if false 2 3))"))
-;(spit-and-print  (lisp->js "(let [a 10] a)"))
-;(spit-and-print  (lisp->js "(fn f [a b] (let [x a y (* b b)] (+ x y)))"))
-;(spit-and-print  (lisp->js "(fn foo [] (print \"hello\"))"))
-(spit-and-print (lisp->js "(let [a 10 b 20] a)"))
-
-
-
-
-
+(on-file-event :modify "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp/hej.clj")
 
 
 
