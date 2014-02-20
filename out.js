@@ -1,3 +1,5 @@
-function(x, y, z) {
-	return x - y;
-}
+function() {
+	a = 10;
+	b = 20;
+	return a;
+}();

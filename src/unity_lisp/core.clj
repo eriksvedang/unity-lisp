@@ -48,16 +48,26 @@
   (format "function(%s) {\n%s\n}" arglist body))
 
 (defn named-fn-def [fn-name arglist body]
-  (format "function %s(%s) {\n%s\n}" fn-name arglist (with-indent body)))
+  (format "function %s(%s) {\n%s\n}" fn-name arglist body))
 
 (defn return [code]
   (format "return %s;" code))
+
+(defn if-statement [conditional body else-body]
+  (format "(%s ? %s : %s)" conditional body else-body))
+
+(defn let-statement [bindings body]
+  (format "function() {\n%s\n%s\n}();" bindings body))
+
+
 
 ;; Pattern matching functions (takes parts of ASTs and generates js-strings)
 (declare match-list)
 (declare match-args)
 (declare match-form)
 (declare match-body)
+(declare match-vector)
+(declare match-bindings)
 
 (defn match-list [l]
   (match l
@@ -65,8 +75,14 @@
          [[:word "def"] [:word variable] form] (define variable (match-form form))
          [[:infix-operator op] a b] (infix op (match-form a) (match-form b))
          [[:word "fn"] [:vector & args] & body] (fn-def (match-args args) (match-body body))
+         [[:word "fn"] [:word fn-name] [:vector & args] & body] (named-fn-def fn-name (match-args args) (match-body body))
+         [[:word "if"] conditional body else-body] (if-statement (match-form conditional) (match-form body) (match-form else-body))
+         [[:word "let"] [:vector & bindings] & body] (let-statement (match-bindings bindings) (match-body body))
          [f & args] (fn-call (match-form f) (match-args args))
          :else (str "//Failed to match list " (str l))))
+
+(defn match-vector [v]
+  (format "[%s]" (clojure.string/join ", " (map match-form v))))
 
 (defn match-args [args]
   (clojure.string/join ", " (map match-form args)))
@@ -76,6 +92,14 @@
                        (concat (map #(with-indent (match-form %)) (butlast body))
                                [(with-indent (return (match-form (last body))))])))
 
+(defn match-binding [b]
+  (match (vec b)
+         [[:word variable] form] (assign variable (match-form form))
+         :else (str "// Failed to match binding " b)))
+
+(defn match-bindings [bindings]
+  (clojure.string/join "\n"
+                       (map #(with-indent (match-binding %)) (partition 2 bindings))))
 
 (defn match-form [form]
     (match form
@@ -83,6 +107,7 @@
            [:word x] x
            [:number n] n
            [:string s] (str "\"" s "\"")
+           [:vector & v] (match-vector v)
            [:list & l] (match-list l)
            :else (str "//Failed to match form " (str form))))
 
