@@ -64,6 +64,9 @@
 (defn new-statement [type-name arglist]
   (format "new %s(%s)" type-name arglist))
 
+(defn null []
+  "function(){return null;}()")
+
 
 ;; Pattern matching functions (takes parts of ASTs and generates js-strings)
 (declare match-list)
@@ -83,6 +86,7 @@
          [[:infix-operator op] a b] (infix op (match-form a) (match-form b))
          [[:word "fn"] [:vector & args] & body] (fn-def (match-args args) (match-body body false))
          [[:word "fn"] [:word fn-name] [:vector & args] & body] (named-fn-def fn-name (match-args args) (match-body body false))
+         [[:word "fn"] [:word "void"] [:word fn-name] [:vector & args] & body] (named-fn-def fn-name (match-args args) (match-body body true))
          [[:word "void"] [:word fn-name] [:vector & args] & body] (named-fn-def fn-name (match-args args) (match-body body true))
          [[:word "if"] conditional body else-body] (if-statement (match-form conditional) (match-form body) (match-form else-body))
          [[:word "let"] [:vector & bindings] & body] (let-statement (match-bindings bindings) (match-body body false))
@@ -116,7 +120,7 @@
 
 (defn match-form [form]
     (match form
-           nil "null"
+           nil "/* nothingness */"
            [:word "nil"] "null"
            [:word x] x
            [:number n] n
