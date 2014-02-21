@@ -23,7 +23,7 @@
      <token> = word | number | infix-operator | string
      whitespace = #'\\s+'
      number = #'-*[0-9]+.*[0-9]*'
-     infix-operator = (#'[\\+\\*\\/]+' | 'is' | 'as' | '-') <#'\\s+'>
+     infix-operator = (#'[\\+\\*\\/]+' | 'is' | 'as' | '-' | 'and' | '==' | '!=') <#'\\s+'>
      word = #'[a-zA-Z!?.]*[a-zA-Z!?.0-9-]+'
      string = <quote> #'[a-zA-Z!?10-9]+' <quote>
      quote = '\"'
@@ -41,7 +41,7 @@
   (format "var %s = %s" variable code))
 
 (defn infix [op a b]
-  (format "%s %s %s" a op b))
+  (format "(%s %s %s)" a op b))
 
 (defn fn-call [f args]
   (format "%s(%s)" f args))
