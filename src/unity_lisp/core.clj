@@ -47,16 +47,19 @@
   (format "%s(%s)" f args))
 
 (defn fn-def [arglist body]
-  (format "function(%s) {\n%s}" arglist body))
+  (format "function(%s) : Object {\n%s}" arglist body))
 
 (defn named-fn-def [fn-name arglist body]
-  (format "function %s(%s) {\n%s}" fn-name arglist body))
+  (format "function %s(%s) : Object {\n%s}" fn-name arglist body))
 
 (defn return [code]
   (format "return %s" code))
 
 (defn if-statement [conditional body else-body]
   (format "(%s ? %s : %s)" conditional body else-body))
+
+(defn do-if-statement [conditional body else-body]
+  (format "if(%s) {\n%s} else {\n%s}" conditional body else-body))
 
 (defn let-statement [bindings body]
   (format "function() : Object {\n%s%s}()" bindings body))
@@ -71,6 +74,7 @@
 (declare match-args)
 (declare match-form)
 (declare match-body)
+(declare match-statement)
 (declare match-vector)
 (declare match-bindings)
 (declare match-map)
@@ -87,6 +91,7 @@
          [[:word "fn"] [:word "void"] [:word fn-name] [:vector & args] & body] (named-fn-def fn-name (match-args args) (match-body body true))
          [[:word "void"] [:word fn-name] [:vector & args] & body] (named-fn-def fn-name (match-args args) (match-body body true))
          [[:word "if"] conditional body else-body] (if-statement (match-form conditional) (match-form body) (match-form else-body))
+         [[:word "do-if"] conditional body else-body] (do-if-statement (match-form conditional) (match-statement body) (match-statement else-body))
          [[:word "let"] [:vector & bindings] & body] (let-statement (match-bindings bindings) (match-body body false))
          [f & args] (fn-call (match-form f) (match-args args))
          :else (str "/* Failed to match list " (str l) "*/")))
@@ -107,6 +112,10 @@
                                                (if is-void
                                                  last-statement
                                                  (return last-statement))))])))
+
+(defn match-statement [form]
+  (println form)
+  (with-indent (str (match-form form) ";")))
 
 (defn match-binding [b]
   (match (vec b)
