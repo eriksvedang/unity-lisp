@@ -17,22 +17,22 @@
      <rsquarebrack> = <']'>
      <lcurly> = <'{'>
      <rcurly> = <'}'>
-     <token> = word | number | infix-operator | string
      <emptylist> = lparen rparen
      <emptyvec> = lsquarebrack rsquarebrack
      <emptymap> = lcurly rcurly
+     <token> = word | number | infix-operator | string
      whitespace = #'\\s+'
-     infix-operator = #'[\\+\\*\\/\\-]+' | 'is' | 'as'
-     word = #'[a-zA-Z!?.]*[a-zA-Z!?.0-9]+'
+     number = #'-*[0-9]+.*[0-9]*'
+     infix-operator = (#'[\\+\\*\\/]+' | 'is' | 'as' | '-') <#'\\s+'>
+     word = #'[a-zA-Z!?.]*[a-zA-Z!?.0-9-]+'
      string = <quote> #'[a-zA-Z!?10-9]+' <quote>
      quote = '\"'
-     comment = #';.*'
-     number = #'[0-9]+.*[0-9]*'"))
+     comment = #';.*'"))
 
 ;; All these functions takes and returns strings
 (defn with-indent [code]
   (clojure.string/join
-   (map #(str "\t" %) (clojure.string/split code #"\n"))))
+   (map #(str "\t" % "\n") (clojure.string/split code #"\n"))))
 
 (defn assign [variable code]
   (format "%s = %s" variable code))
@@ -47,25 +47,23 @@
   (format "%s(%s)" f args))
 
 (defn fn-def [arglist body]
-  (format "function(%s) {\n%s\n}" arglist body))
+  (format "function(%s) {\n%s}" arglist body))
 
 (defn named-fn-def [fn-name arglist body]
-  (format "function %s(%s) {\n%s\n}" fn-name arglist body))
+  (format "function %s(%s) {\n%s}" fn-name arglist body))
 
 (defn return [code]
-  (format "return %s;" code))
+  (format "return %s" code))
 
 (defn if-statement [conditional body else-body]
   (format "(%s ? %s : %s)" conditional body else-body))
 
 (defn let-statement [bindings body]
-  (format "function() {\n%s\n%s\n}();" bindings body))
+  (format "function() {\n%s%s}()" bindings body))
 
 (defn new-statement [type-name arglist]
   (format "new %s(%s)" type-name arglist))
 
-(defn null []
-  "function(){return null;}()")
 
 
 ;; Pattern matching functions (takes parts of ASTs and generates js-strings)
@@ -103,20 +101,20 @@
   (clojure.string/join ", " (map match-form args)))
 
 (defn match-body [body is-void]
-  (clojure.string/join ";\n"
-                       (concat (map #(with-indent (match-form %)) (butlast body))
-                               [(with-indent (if is-void
-                                               (str (match-form (last body)) ";")
-                                               (return (match-form (last body)))))])))
+  (clojure.string/join
+                       (concat (map #(with-indent (str (match-form %) ";")) (butlast body))
+                               [(with-indent (let [last-statement (str (match-form (last body)) ";")]
+                                               (if is-void
+                                                 last-statement
+                                                 (return last-statement))))])))
 
 (defn match-binding [b]
   (match (vec b)
-         [[:word variable] form] (assign variable (match-form form))
+         [[:word variable] form] (define variable (match-form form))
          :else (str "/* Failed to match binding " b " */")))
 
 (defn match-bindings [bindings]
-  (clojure.string/join "\n"
-                       (map #(with-indent (match-binding %)) (partition 2 bindings))))
+  (clojure.string/join (map #(with-indent (str (match-binding %) ";")) (partition 2 bindings))))
 
 (defn match-form [form]
     (match form
@@ -152,6 +150,10 @@
   (let [tree (p code)]
     (tree->js tree)))
 
+
+
+;; File watcher
+
 (defn clj-to-js-path [clj-path]
   (clojure.string/replace clj-path #".clj" ".js"))
 
@@ -174,7 +176,7 @@
 (defn watch [path]
   (start-watch [{:path path
                  :event-types [:create :modify :delete]
-                 :bootstrap (fn [path] (println "Starting to watch " path))
+                 :bootstrap (fn [path] (println "Starting to watch" path))
                  :callback on-file-event
                  :options {:recursive true}}]))
 

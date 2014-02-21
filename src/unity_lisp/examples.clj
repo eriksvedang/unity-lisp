@@ -30,10 +30,19 @@
 (p "erik ; hej pa dig\nsvej")
 (p "hej.hej")
 
+(p "-100")
+(p "(2)")
+(p "(2 3)")
+
+
 
 ; Code generation
 (lisp->js "42")
 (lisp->js "100 300")
+(lisp->js "-5")
+(lisp->js "10.2")
+(lisp->js "-500.2323")
+
 
 (lisp->js "(+ 2 3)")
 (lisp->js "(- 2 3)")
@@ -42,6 +51,7 @@
 (lisp->js "(is x int)")
 (lisp->js "(as x int)")
 (lisp->js "x")
+(lisp->js "(* (+ 2 3) 10)")
 
 (lisp->js "(foo 1 2 3 4)")
 (lisp->js "(* (+ a b) (+ c d))")
@@ -69,6 +79,10 @@
 (lisp->js "{a 3}")
 (lisp->js "{a 3 b 4}")
 
+(lisp->js "(get stats x)")
+(lisp->js "(set! y (get f \"a\"))")
+
+(lisp->js "(fn void Start [] (pp (range 10 5 2)))")
 
 ;(watch "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp")
 
