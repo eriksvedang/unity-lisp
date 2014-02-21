@@ -34,6 +34,8 @@
 (p "(2)")
 (p "(2 3)")
 
+(p ".-hej")
+
 
 
 ; Code generation

@@ -20,12 +20,13 @@
      <emptylist> = lparen rparen
      <emptyvec> = lsquarebrack rsquarebrack
      <emptymap> = lcurly rcurly
-     <token> = word | number | infix-operator | string
+     <token> = word | number | infix-operator | string | accessor
      whitespace = #'\\s+'
      number = #'-*[0-9]+.*[0-9]*'
      infix-operator = (#'[\\+\\*\\/]+' | 'is' | 'as' | '-' | 'and' | '==' | '!=' | '<' | '>' | '<=' | '>=' ) <#'\\s+'>
+     accessor = '.-' word
      word = #'[a-zA-Z!?.]*[a-zA-Z!?.0-9-]+'
-     string = <quote> #'[a-zA-Z!?10-9]+' <quote>
+     string = <quote> #'[a-zA-Z!?10-9 ]+' <quote>
      quote = '\"'
      comment = #';.*'"))
 
@@ -67,6 +68,11 @@
 (defn new-statement [type-name arglist]
   (format "new %s(%s)" type-name arglist))
 
+(defn nth-statement [l n]
+  (format "%s[%s]" l n))
+
+(defn access [attr obj]
+  (format "%s.%s" obj attr))
 
 
 ;; Pattern matching functions (takes parts of ASTs and generates js-strings)
@@ -83,7 +89,9 @@
   (match l
          [[:word "set!"] [:word variable] form] (assign variable (match-form form))
          [[:word "def"] [:word variable] form] (define variable (match-form form))
+         [[:accessor ".-" [:word attribute]] obj] (access attribute (match-form obj))
          [[:word "import"] [:word lib]] (str "import " lib)
+         [[:word "nth"] form index-form] (nth-statement (match-form form) (match-form index-form))
          [[:word "new"] [:word type-name] & args] (new-statement type-name (match-args args))
          [[:infix-operator op] a b] (infix op (match-form a) (match-form b))
          [[:word "fn"] [:vector & args] & body] (fn-def (match-args args) (match-body body false))
@@ -125,6 +133,13 @@
 (defn match-bindings [bindings]
   (clojure.string/join (map #(with-indent (str (match-binding %) ";")) (partition 2 bindings))))
 
+(defn match-infix [op]
+  (case op
+    "+" "_add_fn"
+    "-" "_sub_fn"
+    "*" "_mul_fn"
+    "/" "_div_fn"))
+
 (defn match-form [form]
     (match form
            nil "/* nothingness */"
@@ -135,7 +150,7 @@
            [:vector & v] (match-vector v)
            [:list & l] (match-list l)
            [:map & m] (match-map m)
-           ;[:comment text] (str "")
+           [:infix-operator op] (match-infix op)
            :else (str "/* Failed to match form " form " */")))
 
 
