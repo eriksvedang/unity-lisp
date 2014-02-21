@@ -23,7 +23,7 @@
      <token> = word | number | infix-operator | string
      whitespace = #'\\s+'
      number = #'-*[0-9]+.*[0-9]*'
-     infix-operator = (#'[\\+\\*\\/]+' | 'is' | 'as' | '-' | 'and' | '==' | '!=') <#'\\s+'>
+     infix-operator = (#'[\\+\\*\\/]+' | 'is' | 'as' | '-' | 'and' | '==' | '!=' | '<' | '>' | '<=' | '>=' ) <#'\\s+'>
      word = #'[a-zA-Z!?.]*[a-zA-Z!?.0-9-]+'
      string = <quote> #'[a-zA-Z!?10-9]+' <quote>
      quote = '\"'
@@ -59,7 +59,7 @@
   (format "(%s ? %s : %s)" conditional body else-body))
 
 (defn let-statement [bindings body]
-  (format "function() {\n%s%s}()" bindings body))
+  (format "function() : Object {\n%s%s}()" bindings body))
 
 (defn new-statement [type-name arglist]
   (format "new %s(%s)" type-name arglist))
