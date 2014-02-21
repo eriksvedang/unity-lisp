@@ -11,6 +11,8 @@
      list = (lparen (<whitespace>* form <whitespace>*)* rparen) | emptylist
      vector = (lsquarebrack form (<whitespace> form)* rsquarebrack) | emptyvec
      map = (lcurly form (<whitespace> form)* rcurly) | emptymap
+     sugar-lambda = <'#'> list
+     percent-sign = '%'
      <lparen> = <'('>
      <rparen> = <')'>
      <lsquarebrack> = <'['>
@@ -20,7 +22,7 @@
      <emptylist> = lparen rparen
      <emptyvec> = lsquarebrack rsquarebrack
      <emptymap> = lcurly rcurly
-     <token> = word | number | infix-operator | string | accessor
+     <token> = word | number | infix-operator | string | accessor | sugar-lambda | percent-sign
      whitespace = #'\\s+'
      number = #'-*[0-9]+.*[0-9]*'
      infix-operator = (#'[\\+\\*\\/]+' | 'is' | 'as' | '-' | 'and' | '==' | '!=' | '<' | '>' | '<=' | '>=' ) <#'\\s+'>
@@ -87,7 +89,7 @@
 
 (defn match-list [l]
   (match l
-         [[:word "set!"] [:word variable] form] (assign variable (match-form form))
+         [[:word "set!"] variable form] (assign (match-form variable) (match-form form))
          [[:word "def"] [:word variable] form] (define variable (match-form form))
          [[:accessor ".-" [:word attribute]] obj] (access attribute (match-form obj))
          [[:word "import"] [:word lib]] (str "import " lib)
@@ -151,6 +153,8 @@
            [:list & l] (match-list l)
            [:map & m] (match-map m)
            [:infix-operator op] (match-infix op)
+           [:sugar-lambda body] (fn-def "__ARG__" (match-body [body] false))
+           [:percent-sign "%"] "__ARG__"
            :else (str "/* Failed to match form " form " */")))
 
 

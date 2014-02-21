@@ -86,6 +86,18 @@
 
 (lisp->js "(fn void Start [] (pp (range 10 5 2)))")
 
+(lisp->js "(.-hej.san o)")
+(lisp->js "(set! (.-transform o) (new Vector3 0 0 0))")
+
+(p "(fn [a] a)")
+(p "#(max % 10)")
+
+(lisp->js "(fn [a] (max 5 10))")
+(lisp->js "#(max % 10)")
+(spit "out.js" (lisp->js "#(max % 10)"))
+
+
+
 ;(watch "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp")
 
 (on-file-event :modify "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp/hej.clj")
@@ -94,7 +106,7 @@
 
 
 
-
+; Compile keywords to functions possibly?
 
 
 
