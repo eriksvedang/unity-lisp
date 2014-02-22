@@ -87,6 +87,9 @@
 (defn let-statement [bindings body]
   (format "function() : Object {\n%s%s}()" bindings body))
 
+(defn do-statement [body]
+  (format "function() : Object {\n%s}()" body))
+
 (defn new-statement [type-name arglist]
   (format "new %s(%s)" type-name arglist))
 
@@ -101,6 +104,8 @@
 
 
 
+
+
 ;; Pattern matching functions (takes parts of ASTs and generates js-strings)
 (declare match-list)
 (declare match-args)
@@ -111,6 +116,7 @@
 (declare match-bindings)
 (declare match-map)
 (declare match-method)
+(declare match-do-statement)
 
 (defn match-list [l]
   (match l
@@ -120,6 +126,7 @@
          [[:word "import"] [:word lib]] (str "import " lib)
          [[:word "nth"] form index-form] (nth-statement (match-form form) (match-form index-form))
          [[:word "new"] [:word type-name] & args] (new-statement type-name (match-args args))
+         [[:word "do"] & forms] (match-do-statement forms)
          [[:infix-operator op] a b] (infix op (match-form a) (match-form b))
          [[:word "fn"] [:vector & args] & body] (fn-def (match-args args) (match-body body false))
          [[:word "fn"] [:word fn-name] [:vector & args] & body] (named-fn-def fn-name (match-args args) (match-body body false))
@@ -132,6 +139,9 @@
          [[:method "." [:word method-name]] obj & args] (method-call method-name (match-form obj) (match-args args))
          [f & args] (fn-call (match-form f) (match-args args))
          :else (str " /* Failed to match list " (str l) " */ ")))
+
+(defn match-do-statement [forms]
+  (do-statement (match-body forms)))
 
 (defn match-vector [v]
   (format "[%s]" (clojure.string/join ", " (map match-form v))))
