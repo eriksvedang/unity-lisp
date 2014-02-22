@@ -35,6 +35,9 @@
 (p "(2 3)")
 
 (p ".-hej")
+(p ".hej")
+
+(p ":red")
 
 
 
@@ -105,6 +108,8 @@
 (lisp->js "(def Vector3 my-vector nil)")
 (lisp->js "(def-static Vector3 my-vector nil)")
 (lisp->js "(def-static foo [1 2 3])")
+
+(lisp->js ":red")
 
 
 ;(watch "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp")

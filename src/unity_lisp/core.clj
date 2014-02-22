@@ -22,7 +22,7 @@
      <emptylist> = lparen rparen
      <emptyvec> = lsquarebrack rsquarebrack
      <emptymap> = lcurly rcurly
-     <token> = word | number | infix-operator | string | accessor | method | sugar-lambda | percent-sign
+     <token> = word | number | infix-operator | string | accessor | method | sugar-lambda | percent-sign | keyword
      whitespace = #'\\s+'
      number = #'-*[0-9]+\\.?[0-9]*'
      infix-operator = (#'[\\+\\*\\/]+' | 'is' | 'as' | '-' | 'and' | '==' | '!=' | '<' | '>' | '<=' | '>=' ) <#'\\s+'>
@@ -31,6 +31,7 @@
      word = #'[a-zA-Z!?]+[a-zA-Z!?.0-9-]*'
      string = <quote> #'[a-zA-Z!?10-9 :;]+' <quote>
      quote = '\"'
+     keyword = <':'> word
      comment = #';.*'"))
 
 
@@ -111,7 +112,8 @@
 (defn attribute-accessor-fn [attribute]
   (format "function(obj) { return obj.%s; }" attribute))
 
-
+(defn keyword-access [keyword-name obj]
+  (format "%s[%s]" obj (str "\"" keyword-name "\"")))
 
 
 
@@ -149,6 +151,7 @@
          [[:word "do-if"] conditional body else-body] (do-if-statement (match-form conditional) (match-statement body) (match-statement else-body))
          [[:word "let"] [:vector & bindings] & body] (let-statement (match-bindings bindings) (match-body body false))
          [[:method "." [:word method-name]] obj & args] (method-call method-name (match-form obj) (match-args args))
+         [[:keyword [:word keyword-name]] obj] (keyword-access keyword-name (match-form obj))
          [f & args] (fn-call (match-form f) (match-args args))
          :else (str " /* Failed to match list " (str l) " */ ")))
 
@@ -207,6 +210,7 @@
            [:sugar-lambda body] (fn-def "__ARG__" (match-body [body] false))
            [:percent-sign "%"] "__ARG__"
            [:accessor ".-" [:word attribute]] (attribute-accessor-fn attribute)
+           [:keyword [:word keyword-name]] (str "\"" keyword-name "\"")
            :else (str " /* Failed to match form " form " */ ")))
 
 
