@@ -102,6 +102,9 @@
 (lisp->js "(.foo p)")
 (lisp->js "(.Rotate transform 10 20 30)")
 
+(lisp->js "(def Vector3 my-vector nil)")
+(lisp->js "(def-static Vector3 my-vector nil)")
+(lisp->js "(def-static foo [1 2 3])")
 
 
 ;(watch "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp")
@@ -114,6 +117,9 @@
 
 
 ; Compile keywords to functions possibly?
+
+; Add:
+; loop
 
 
 ; Functions:

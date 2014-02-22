@@ -57,6 +57,15 @@
 (defn define [variable code]
   (format "var %s = %s" (js-naming variable) code))
 
+(defn define-static [variable code]
+  (str "static " (define variable code)))
+
+(defn define-typed [type-name variable code]
+  (format "var %s : %s = %s" (js-naming variable) type-name code))
+
+(defn define-typed-static [type-name variable code]
+  (str "static " (define-typed type-name variable code)))
+
 (defn infix [op a b]
   (format "(%s %s %s)" a op b))
 
@@ -122,6 +131,9 @@
   (match l
          [[:word "set!"] variable form] (assign (match-form variable) (match-form form))
          [[:word "def"] [:word variable] form] (define variable (match-form form))
+         [[:word "def"] [:word type-name] [:word variable] form] (define-typed type-name variable (match-form form))
+         [[:word "def-static"] [:word variable] form] (define-static variable (match-form form))
+         [[:word "def-static"] [:word type-name] [:word variable] form] (define-typed-static type-name variable (match-form form))
          [[:accessor ".-" [:word attribute]] obj] (access attribute (match-form obj))
          [[:word "import"] [:word lib]] (str "import " lib)
          [[:word "nth"] form index-form] (nth-statement (match-form form) (match-form index-form))
@@ -141,7 +153,7 @@
          :else (str " /* Failed to match list " (str l) " */ ")))
 
 (defn match-do-statement [forms]
-  (do-statement (match-body forms)))
+  (do-statement (match-body forms true)))
 
 (defn match-vector [v]
   (format "[%s]" (clojure.string/join ", " (map match-form v))))
