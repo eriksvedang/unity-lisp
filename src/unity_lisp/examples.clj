@@ -38,7 +38,7 @@
 (p ".hej")
 
 (p ":red")
-
+(p "λ:red")
 
 
 ; Code generation
@@ -111,8 +111,10 @@
 
 (lisp->js ":red")
 (lisp->js "(:green colors)")
+(lisp->js "(map λ:age peeps)")
 
 (lisp->js "(def a->b 10)")
+
 
 
 ;(watch "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp")

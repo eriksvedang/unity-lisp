@@ -22,7 +22,7 @@
      <emptylist> = lparen rparen
      <emptyvec> = lsquarebrack rsquarebrack
      <emptymap> = lcurly rcurly
-     <token> = word | number | infix-operator | string | accessor | method | sugar-lambda | percent-sign | keyword
+     <token> = word | number | infix-operator | string | accessor | method | sugar-lambda | percent-sign | keyword | keyword-fn
      whitespace = #'\\s+'
      number = #'-*[0-9]+\\.?[0-9]*'
      infix-operator = (#'[\\+\\*\\/]+' | 'is' | 'as' | '-' | 'and' | '==' | '!=' | '<' | '>' | '<=' | '>=' ) <#'\\s+'>
@@ -32,6 +32,7 @@
      string = <quote> #'[a-zA-Z!?10-9 :;]+' <quote>
      quote = '\"'
      keyword = <':'> word
+     keyword-fn = <'λ'> token
      comment = #';.*'"))
 
 
@@ -116,6 +117,9 @@
 
 (defn keyword-access [keyword-name obj]
   (format "%s[%s]" obj (str "\"" keyword-name "\"")))
+
+(defn keyword-fn [keyword-name]
+  (format "function(m) { return m[%s]; }" keyword-name))
 
 
 
@@ -213,6 +217,7 @@
            [:percent-sign "%"] "__ARG__"
            [:accessor ".-" [:word attribute]] (attribute-accessor-fn attribute)
            [:keyword [:word keyword-name]] (str "\"" keyword-name "\"")
+           [:keyword-fn k] (keyword-fn (match-form k))
            :else (str " /* Failed to match form " form " */ ")))
 
 
