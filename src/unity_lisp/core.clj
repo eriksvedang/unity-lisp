@@ -22,12 +22,13 @@
      <emptylist> = lparen rparen
      <emptyvec> = lsquarebrack rsquarebrack
      <emptymap> = lcurly rcurly
-     <token> = word | number | infix-operator | string | accessor | sugar-lambda | percent-sign
+     <token> = word | number | infix-operator | string | accessor | method | sugar-lambda | percent-sign
      whitespace = #'\\s+'
-     number = #'-*[0-9]+.*[0-9]*'
+     number = #'-*[0-9]+\\.?[0-9]*'
      infix-operator = (#'[\\+\\*\\/]+' | 'is' | 'as' | '-' | 'and' | '==' | '!=' | '<' | '>' | '<=' | '>=' ) <#'\\s+'>
      accessor = '.-' word
-     word = #'[a-zA-Z!?.]*[a-zA-Z!?.0-9-]+'
+     method = '.' word
+     word = #'[a-zA-Z!?]+[a-zA-Z!?.0-9-]*'
      string = <quote> #'[a-zA-Z!?10-9 :;]+' <quote>
      quote = '\"'
      comment = #';.*'"))
@@ -61,6 +62,9 @@
 
 (defn fn-call [f args]
   (format "%s(%s)" (js-naming f) args))
+
+(defn method-call [method-name obj args]
+  (format "%s.%s(%s)" obj method-name args))
 
 (defn fn-def [arglist body]
   (format "function(%s) : Object {\n%s}" arglist body))
@@ -96,6 +100,7 @@
   (format "function(obj) { return obj.%s; }" attribute))
 
 
+
 ;; Pattern matching functions (takes parts of ASTs and generates js-strings)
 (declare match-list)
 (declare match-args)
@@ -105,6 +110,7 @@
 (declare match-vector)
 (declare match-bindings)
 (declare match-map)
+(declare match-method)
 
 (defn match-list [l]
   (match l
@@ -123,8 +129,9 @@
          [[:word "if"] conditional body else-body] (if-statement (match-form conditional) (match-form body) (match-form else-body))
          [[:word "do-if"] conditional body else-body] (do-if-statement (match-form conditional) (match-statement body) (match-statement else-body))
          [[:word "let"] [:vector & bindings] & body] (let-statement (match-bindings bindings) (match-body body false))
+         [[:method "." [:word method-name]] obj & args] (method-call method-name (match-form obj) (match-args args))
          [f & args] (fn-call (match-form f) (match-args args))
-         :else (str "/* Failed to match list " (str l) "*/")))
+         :else (str " /* Failed to match list " (str l) " */ ")))
 
 (defn match-vector [v]
   (format "[%s]" (clojure.string/join ", " (map match-form v))))
@@ -150,7 +157,7 @@
 (defn match-binding [b]
   (match (vec b)
          [[:word variable] form] (define variable (match-form form))
-         :else (str "/* Failed to match binding " b " */")))
+         :else (str " /* Failed to match binding " b " */ ")))
 
 (defn match-bindings [bindings]
   (clojure.string/join (map #(with-indent (str (match-binding %) ";")) (partition 2 bindings))))
@@ -161,6 +168,8 @@
     "-" "_sub_fn"
     "*" "_mul_fn"
     "/" "_div_fn"))
+
+(defn match-method [])
 
 (defn match-form [form]
     (match form
@@ -176,7 +185,7 @@
            [:sugar-lambda body] (fn-def "__ARG__" (match-body [body] false))
            [:percent-sign "%"] "__ARG__"
            [:accessor ".-" [:word attribute]] (attribute-accessor-fn attribute)
-           :else (str "/* Failed to match form " form " */")))
+           :else (str " /* Failed to match form " form " */ ")))
 
 
 

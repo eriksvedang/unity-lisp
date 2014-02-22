@@ -50,7 +50,7 @@
 (lisp->js "(- 2 3)")
 (lisp->js "(* 2 3)")
 (lisp->js "(/ 2 3)")
-(lisp->js "(is x int)")
+(lisp->js "(* 1 (+ 2 3))")
 (lisp->js "(as x int)")
 (lisp->js "x")
 (lisp->js "(* (+ 2 3) 10)")
@@ -89,11 +89,9 @@
 (lisp->js "(.-hej.san o)")
 (lisp->js "(set! (.-transform o) (new Vector3 0 0 0))")
 
-(p "(fn [a] a)")
-(p "#(max % 10)")
-
 (lisp->js "(fn [a] (max 5 10))")
 (lisp->js "#(max % 10)")
+
 (lisp->js "(map .-transform transforms)")
 
 (lisp->js "(defn foo [x] (* x x))")
@@ -101,12 +99,16 @@
 (lisp->js "(def name-with-dashes awesome?!)")
 (lisp->js "(defn awesome? [best-guess] (swipe! x))")
 
+(lisp->js "(.foo p)")
+(lisp->js "(.Rotate transform 10 20 30)")
+
+
 
 ;(watch "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp")
 
-(on-file-event :modify "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp/utils.clj")
-(on-file-event :modify "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp/hej.clj")
 
+(on-file-event :modify "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp/hej.clj")
+(on-file-event :modify "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp/utils.clj")
 
 
 
