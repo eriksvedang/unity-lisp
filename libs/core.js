@@ -5,6 +5,10 @@ static function _sub_fn(a, b) { return a - b; }
 static function _mul_fn(a, b) { return a * b; }
 static function _div_fn(a, b) { return a / b; }
 
+static function inc(x) { return x + 1; }
+static function dec(x) { return x - 1; }
+static function identity(x) { return x; }
+
 static function range(n) {
 	return range(0, n, 1);
 }
@@ -27,6 +31,14 @@ static function range(start, end, step) {
 	return l;
 }
 
+static function rand_int(max) {
+	return Random.Range(0, max);
+}
+
+static function rand_int(min, max) {
+	return Random.Range(min, max);
+}
+
 static function reduce(f : Function, coll : Array) {
 	current = coll[0];
 	for (var i = 1; i < coll.length; i++) {
@@ -44,13 +56,15 @@ static function reduce(f : Function, start : Object, coll : Array) {
 	return current;
 }
 
-static function each(f : Function, coll : Array) {
+// Do function f to each item in coll (modifies the collection)
+static function each_BANG(f : Function, coll : Array) {
 	for (var i = coll.length - 1; i >= 0; i--) {
 		coll[i] = f(coll[i]);
 	};
 	return null;
 }
 
+// Do funcion f for each item in coll
 static function foreach(f : Function, coll : Array) {
 	for(var item in coll) {
 		f(item);
@@ -94,7 +108,7 @@ static function ArrayToStr(array : Array) : String {
 
 static function Str(o) {
 	if(o == null) {
-		return "null";
+		return "nil";
 	}
 	var t = o.GetType();
 	if(o as Array || o as System.Object[] || o as System.Int32[] || o as System.Single[]) {
