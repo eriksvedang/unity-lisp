@@ -94,12 +94,14 @@
 
 (lisp->js "(fn [a] (max 5 10))")
 (lisp->js "#(max % 10)")
-(spit "out.js" (lisp->js "#(max % 10)"))
+(lisp->js "(map .-transform transforms)")
 
+(lisp->js "(defn foo [x] (* x x))")
 
 
 ;(watch "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp")
 
+(on-file-event :modify "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp/utils.clj")
 (on-file-event :modify "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp/hej.clj")
 
 
@@ -108,7 +110,8 @@
 
 ; Compile keywords to functions possibly?
 
-
+; Macros:
+; -> ->> if-let when do-when
 
 
 

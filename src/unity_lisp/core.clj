@@ -6,7 +6,7 @@
 
 (def p
   (insta/parser
-    "program = (form <whitespace>*)*
+    "program = <whitespace>* (form <whitespace>*)*
      <form> = token | list | vector | map | <comment>
      list = (lparen (<whitespace>* form <whitespace>*)* rparen) | emptylist
      vector = (lsquarebrack form (<whitespace> form)* rsquarebrack) | emptyvec
@@ -28,7 +28,7 @@
      infix-operator = (#'[\\+\\*\\/]+' | 'is' | 'as' | '-' | 'and' | '==' | '!=' | '<' | '>' | '<=' | '>=' ) <#'\\s+'>
      accessor = '.-' word
      word = #'[a-zA-Z!?.]*[a-zA-Z!?.0-9-]+'
-     string = <quote> #'[a-zA-Z!?10-9 ]+' <quote>
+     string = <quote> #'[a-zA-Z!?10-9 :;]+' <quote>
      quote = '\"'
      comment = #';.*'"))
 
@@ -55,6 +55,9 @@
 (defn named-fn-def [fn-name arglist body]
   (format "function %s(%s) : Object {\n%s}" fn-name arglist body))
 
+(defn static-named-fn-def [fn-name arglist body]
+  (format "static function %s(%s) : Object {\n%s}" fn-name arglist body))
+
 (defn return [code]
   (format "return %s" code))
 
@@ -75,6 +78,9 @@
 
 (defn access [attr obj]
   (format "%s.%s" obj attr))
+
+(defn attribute-accessor-fn [attribute]
+  (format "function(obj) { return obj.%s; }" attribute))
 
 
 ;; Pattern matching functions (takes parts of ASTs and generates js-strings)
@@ -99,6 +105,7 @@
          [[:word "fn"] [:vector & args] & body] (fn-def (match-args args) (match-body body false))
          [[:word "fn"] [:word fn-name] [:vector & args] & body] (named-fn-def fn-name (match-args args) (match-body body false))
          [[:word "fn"] [:word "void"] [:word fn-name] [:vector & args] & body] (named-fn-def fn-name (match-args args) (match-body body true))
+         [[:word "defn"] [:word fn-name] [:vector & args] & body] (static-named-fn-def fn-name (match-args args) (match-body body false))
          [[:word "void"] [:word fn-name] [:vector & args] & body] (named-fn-def fn-name (match-args args) (match-body body true))
          [[:word "if"] conditional body else-body] (if-statement (match-form conditional) (match-form body) (match-form else-body))
          [[:word "do-if"] conditional body else-body] (do-if-statement (match-form conditional) (match-statement body) (match-statement else-body))
@@ -155,6 +162,7 @@
            [:infix-operator op] (match-infix op)
            [:sugar-lambda body] (fn-def "__ARG__" (match-body [body] false))
            [:percent-sign "%"] "__ARG__"
+           [:accessor ".-" [:word attribute]] (attribute-accessor-fn attribute)
            :else (str "/* Failed to match form " form " */")))
 
 
