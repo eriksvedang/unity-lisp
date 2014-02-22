@@ -98,6 +98,9 @@
 
 (lisp->js "(defn foo [x] (* x x))")
 
+(lisp->js "(def name-with-dashes awesome?!)")
+(lisp->js "(defn awesome? [best-guess] (swipe! x))")
+
 
 ;(watch "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp")
 
@@ -109,6 +112,13 @@
 
 
 ; Compile keywords to functions possibly?
+
+
+; Functions:
+; assoc, assoc!, set-nth, shuffle, rand-nth, mapcat, filter, remove, loop/recur, count
+; concat, fnil, keys, vals, not, not=, update, update!, update-in, update-in!, get-in,
+; first, rest, apply (how?),
+
 
 ; Macros:
 ; -> ->> if-let when do-when

@@ -32,31 +32,44 @@
      quote = '\"'
      comment = #';.*'"))
 
-;; All these functions takes and returns strings
+
+;; Helpers
+
 (defn with-indent [code]
   (clojure.string/join
    (map #(str "\t" % "\n") (clojure.string/split code #"\n"))))
 
+(defn js-naming [lisp]
+  (-> lisp
+      (#(if (= \? (last lisp))
+          (str "is" (clojure.string/capitalize (apply str (butlast %))))
+          %))
+      (clojure.string/replace "-" "_")
+      (clojure.string/replace "?" "_QMARK")
+      (clojure.string/replace "!" "_BANG")))
+
+;; Javscript output, all these functions takes and returns strings
+
 (defn assign [variable code]
-  (format "%s = %s" variable code))
+  (format "%s = %s" (js-naming variable) code))
 
 (defn define [variable code]
-  (format "var %s = %s" variable code))
+  (format "var %s = %s" (js-naming variable) code))
 
 (defn infix [op a b]
   (format "(%s %s %s)" a op b))
 
 (defn fn-call [f args]
-  (format "%s(%s)" f args))
+  (format "%s(%s)" (js-naming f) args))
 
 (defn fn-def [arglist body]
   (format "function(%s) : Object {\n%s}" arglist body))
 
 (defn named-fn-def [fn-name arglist body]
-  (format "function %s(%s) : Object {\n%s}" fn-name arglist body))
+  (format "function %s(%s) : Object {\n%s}" (js-naming fn-name) arglist body))
 
 (defn static-named-fn-def [fn-name arglist body]
-  (format "static function %s(%s) : Object {\n%s}" fn-name arglist body))
+  (format "static function %s(%s) : Object {\n%s}" (js-naming fn-name) arglist body))
 
 (defn return [code]
   (format "return %s" code))
@@ -153,7 +166,7 @@
     (match form
            nil "/* nothingness */"
            [:word "nil"] "null"
-           [:word x] x
+           [:word x] (js-naming x)
            [:number n] n
            [:string s] (str "\"" s "\"")
            [:vector & v] (match-vector v)
