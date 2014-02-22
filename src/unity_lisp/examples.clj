@@ -110,6 +110,9 @@
 (lisp->js "(def-static foo [1 2 3])")
 
 (lisp->js ":red")
+(lisp->js "(:green colors)")
+
+(lisp->js "(def a->b 10)")
 
 
 ;(watch "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp")

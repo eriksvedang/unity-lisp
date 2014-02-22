@@ -28,7 +28,7 @@
      infix-operator = (#'[\\+\\*\\/]+' | 'is' | 'as' | '-' | 'and' | '==' | '!=' | '<' | '>' | '<=' | '>=' ) <#'\\s+'>
      accessor = '.-' word
      method = '.' word
-     word = #'[a-zA-Z!?]+[a-zA-Z!?.0-9-]*'
+     word = #'[a-zA-Z!?]+[a-zA-Z!?.0-9-<>]*'
      string = <quote> #'[a-zA-Z!?10-9 :;]+' <quote>
      quote = '\"'
      keyword = <':'> word
@@ -47,6 +47,8 @@
           (str "is" (clojure.string/capitalize (apply str (butlast %))))
           %))
       (clojure.string/replace "-" "_")
+      (clojure.string/replace "<" "_LT")
+      (clojure.string/replace ">" "_GT")
       (clojure.string/replace "?" "_QMARK")
       (clojure.string/replace "!" "_BANG")))
 
