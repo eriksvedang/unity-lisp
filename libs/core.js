@@ -9,6 +9,16 @@ static function inc(x) { return x + 1; }
 static function dec(x) { return x - 1; }
 static function identity(x) { return x; }
 
+static function doall(e : IEnumerator) {
+  while(e.MoveNext()) {
+  }
+  return null;
+}
+
+static function doall(coll : IEnumerable) {
+  return doall(coll.GetEnumerator());
+}
+
 static function range(n) {
 	return range(0, n, 1);
 }
@@ -17,6 +27,7 @@ static function range(start, end) {
 	return range(start, end, 1);
 }
 
+/*
 static function range(start, end, step) {
 	var n = (end - start) / step;
 	if(n < 0) {
@@ -30,6 +41,19 @@ static function range(start, end, step) {
 	};
 	return l;
 }
+*/
+
+static function range(start, end, step) : IEnumerable {
+	var n = (end - start) / step;
+	if(n < 0) {
+		throw new System.Exception("Range from " + start + " to " + end + " with step " + step);
+	}
+	var counter = start;
+	for (var i = 0; i < n; i++) {
+    yield counter;
+    counter += step;
+	};
+}
 
 static function rand_int(max) {
 	return Random.Range(0, max);
@@ -39,6 +63,11 @@ static function rand_int(min, max) {
 	return Random.Range(min, max);
 }
 
+static function rand_nth(coll : Array) {
+  return coll[Random.Range(0, coll.Count)];
+}
+
+/*
 static function reduce(f : Function, coll : Array) {
 	current = coll[0];
 	for (var i = 1; i < coll.length; i++) {
@@ -55,6 +84,35 @@ static function reduce(f : Function, start : Object, coll : Array) {
 	};
 	return current;
 }
+*/
+
+static function reduce(f : Function, e : IEnumerator) {
+  e.MoveNext();
+  v = e.Current;
+	while(e.MoveNext()) {
+		v = f(v, e.Current);
+	};
+	return v;
+}
+
+static function reduce(f : Function, coll : IEnumerable) {
+ return reduce(f, coll.GetEnumerator());
+}
+
+static function reduce(f : Function, start : Object, e : IEnumerator) {
+	var v = start;
+	while(e.MoveNext()) {
+		v = f(v, e.Current);
+	};
+	return v;
+}
+
+static function reduce(f : Function, start : Object, coll : IEnumerable) {
+  return reduce(f, coll.GetEnumerator());
+}
+
+
+
 
 // Do function f to each item in coll (modifies the collection)
 static function each_BANG(f : Function, coll : Array) {
@@ -72,12 +130,26 @@ static function foreach(f : Function, coll : Array) {
 	return null;
 }
 
+
+/*
 static function map(f : Function, coll : Array) {
 	var newColl = new Array();
 	for(var item in coll) {
 		newColl.Add(f(item));
 	}
 	return newColl;
+}
+*/
+
+
+static function map(f : Function, e : IEnumerator) {
+  while(e.MoveNext()) {
+    yield f(e.Current);
+  }
+}
+
+static function map(f : Function, coll : IEnumerable) {
+  return map(f, coll.GetEnumerator());
 }
 
 static function HashToStr(hash) : String {
@@ -106,7 +178,7 @@ static function ArrayToStr(array : Array) : String {
 	return s;
 }
 
-static function Str(o) {
+static function Str(o) : String {
 	if(o == null) {
 		return "nil";
 	}
@@ -120,13 +192,42 @@ static function Str(o) {
 	else if(t == typeof(Boo.Lang.Hash)) {
 		return HashToStr(o);
 	}
-	else {
-		return o;
-		//throw "Function Str can't handle type " + o.GetType();
-	}
+  else {
+    var enumerator = o as IEnumerator;
+    var enumerable = o as IEnumerable;
+    if(enumerator) {
+      //print("enumerator!");
+      return ArrayToStr(EnumeratorToArray(enumerator));
+	  }
+    else if(enumerable) {
+      //print("enumerable!");
+      return ArrayToStr(EnumerableToArray(enumerable));
+	  }
+  	else {
+      //print(o.GetType());
+		  return o.ToString();
+	  }
+  }
 }
 
 static function pp(o) {
 	print(Str(o));
 	return null;
+}
+
+static function EnumeratorToArray(e : IEnumerator) {
+  var l = new Array();
+  while(e.MoveNext()) {
+    l.Add(e.Current);
+  }
+  return l;
+}
+
+static function EnumerableToArray(coll : IEnumerable) {
+  var e = coll.GetEnumerator();
+  var l = new Array();
+  while(e.MoveNext()) {
+    l.Add(e.Current);
+  }
+  return l;
 }
