@@ -22,12 +22,13 @@
      <emptylist> = lparen rparen
      <emptyvec> = lsquarebrack rsquarebrack
      <emptymap> = lcurly rcurly
-     <token> = word | number | infix-operator | string | accessor | method | sugar-lambda | percent-sign | keyword | keyword-fn
+     <token> = word | number | infix-operator | string | accessor | method | sugar-lambda | percent-sign | keyword | keyword-fn | yield
      whitespace = #'\\s+'
      number = #'-*[0-9]+\\.?[0-9]*'
      infix-operator = (#'[\\+\\*\\/]+' | 'is' | 'as' | '-' | 'and' | '==' | '!=' | '<' | '>' | '<=' | '>=' ) <#'\\s+'>
      accessor = '.-' word
      method = '.' word
+     yield = 'yield'
      word = #'[a-zA-Z!?]+[a-zA-Z!?.0-9-<>]*'
      string = <quote> #'[a-zA-Z!?10-9 :;]+' <quote>
      quote = '\"'
@@ -79,11 +80,11 @@
 (defn method-call [method-name obj args]
   (format "%s.%s(%s)" obj method-name args))
 
-(defn fn-def [arglist body]
-  (format "function(%s) : Object {\n%s}" arglist body))
+(defn fn-def [return-type arglist body]
+  (format "function(%s) : %s {\n%s}" arglist return-type body))
 
-(defn named-fn-def [fn-name arglist body]
-  (format "function %s(%s) : Object {\n%s}" (js-naming fn-name) arglist body))
+(defn named-fn-def [fn-name return-type arglist body]
+  (format "function %s(%s) : %s {\n%s}" (js-naming fn-name) arglist return-type body))
 
 (defn static-named-fn-def [fn-name arglist body]
   (format "static function %s(%s) : Object {\n%s}" (js-naming fn-name) arglist body))
@@ -132,6 +133,12 @@
 
 
 
+
+(defn has-x?
+  "Does the form 'body' contain x anywhere in it?"
+  [body k]
+  (seq (filter #(= k %) (flatten body))))
+
 ;; Pattern matching functions (takes parts of ASTs and generates js-strings)
 (declare match-list)
 (declare match-args)
@@ -144,6 +151,8 @@
 (declare match-map)
 (declare match-method)
 (declare match-do-statement)
+(declare match-fn-def)
+(declare match-method-def)
 
 (defn match-list [l]
   (match l
@@ -156,6 +165,7 @@
 
          [[:word "import"] [:word lib]] (str "import " lib)
          [[:word "not"] form] (str "!(" (match-form form) ")")
+         [[:yield "yield"] form] (str "yield " (match-form form))
          [[:word "update!"] form f] (update-statement (match-form form) (match-form f))
          [[:word "nth"] form index-form] (nth-statement (match-form form) (match-form index-form))
          [[:word "new"] [:word type-name] & args] (new-statement type-name (match-args args))
@@ -163,9 +173,9 @@
          [[:word "let"] [:vector & bindings] & body] (let-statement (match-bindings bindings) (match-body body false))
          [[:word "deftype"] [:word class-name] [:vector & members] & body] (deftype-statement class-name members (match-class-body body))
 
-         [[:word "fn"] [:vector & args] & body] (fn-def (match-args args) (match-body body false))
+         [[:word "fn"] [:vector & args] & body] (match-fn-def args body)
          [[:word "defn"] [:word fn-name] [:vector & args] & body] (static-named-fn-def fn-name (match-args args) (match-body body false))
-         [[:word "defmethod"] [:word fn-name] [:vector & args] & body] (named-fn-def fn-name (match-args args) (match-body body false))
+         [[:word "defmethod"] [:word fn-name] [:vector & args] & body] (match-method-def fn-name args body)
 
 ;         [[:word "fn"] [:word fn-name] [:vector & args] & body] (named-fn-def fn-name (match-args args) (match-body body false))
 ;         [[:word "void"] [:word fn-name] [:vector & args] & body] (named-fn-def fn-name (match-args args) (match-body body true))
@@ -205,6 +215,16 @@
 (defn match-class-body [body]
   (clojure.string/join (concat (map #(with-indent (str (match-form %) ";")) body))))
 
+(defn match-method-def [fn-name args body]
+  (if (has-x? body :yield)
+    (named-fn-def fn-name "IEnumerator" (match-args args) (match-body body true))
+    (named-fn-def fn-name "Object" (match-args args) (match-body body false))))
+
+(defn match-fn-def [args body]
+  (if (has-x? body :yield)
+    (fn-def "IEnumerator" (match-args args) (match-body body true))
+    (fn-def "Object" (match-args args) (match-body body false))))
+
 (defn match-statement [form]
   (println form)
   (with-indent (str (match-form form) ";")))
@@ -218,9 +238,9 @@
   (clojure.string/join (map #(with-indent (str (match-binding %) ";")) (partition 2 bindings))))
 
 (defn match-sugar-lambda [body]
-  (if (empty? (filter #(= :percent-sign %) (flatten body)))
-    (fn-def "" (match-body [body] false))
-    (fn-def "__ARG__" (match-body [body] false))))
+  (if (has-x? body :percent-sign)
+    (fn-def "Object" "__ARG__" (match-body [body] false))
+    (fn-def "Object" "" (match-body [body] false))))
 
 (filter #(= :list %) (flatten [:list [:word "max"] [:number "5"] [:number "10"]]))
 ;(flatten [[[1 2 3][4 [5 6]] 7 8] 0])

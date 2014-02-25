@@ -40,6 +40,8 @@
 (p ":red")
 (p "λ:red")
 
+(p "(yield 50)")
+
 
 ; Code generation
 (lisp->js "42")
@@ -115,6 +117,8 @@
 (lisp->js "(map λ:age peeps)")
 
 (lisp->js "(def a->b 10)")
+
+(lisp->js "(fn [x] (yield 100) 200)")
 
 
 
