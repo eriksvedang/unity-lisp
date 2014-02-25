@@ -169,6 +169,32 @@ static function map(f : Function, coll : Array) {
 }
 */
 
+static function iterate(f, o) {
+  var current = o;
+  while(true) {
+    yield current;
+    current = f(current);
+  }
+}
+
+static function repeatedly(f) {
+  while(true) {
+    yield f();
+  }
+}
+
+
+static function take(n, coll : IEnumerable) {
+  return take(n, coll.GetEnumerator());
+}
+
+static function take(n, coll : IEnumerator) {
+  while(n > 0 && coll.MoveNext()) {
+    yield coll.Current;
+    n--;
+  }
+}
+
 
 static function map(f : Function, e : IEnumerator) {
   while(e.MoveNext()) {
@@ -332,3 +358,6 @@ static function zipmap(ks, vs) {
   }
   return n;
 }
+
+
+
