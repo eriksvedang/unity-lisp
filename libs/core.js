@@ -69,6 +69,32 @@ static function rand_nth(coll : Array) {
   return coll[Random.Range(0, coll.Count)];
 }
 
+static function _full_copy_coll(coll : Array) {
+  var newColl = new Array();
+	for(var item in coll) {
+		newColl.Add(item);
+	}
+	return newColl;
+}
+
+/*
+static function shuffle(coll : Array) {
+  var newColl = _full_copy_coll(coll);
+  shuffle_BANG(newColl);
+  return newColl;
+}
+*/
+
+static function shuffle(coll : Array) {
+  for(var i = 0; i < coll.Count; i++) {
+    var j = Random.Range(0, i + 1);
+    var temp = coll[i];
+    coll[i] = coll[j];
+    coll[j] = temp;
+  }
+  return coll;
+}
+
 /*
 static function reduce(f : Function, coll : Array) {
 	current = coll[0];
