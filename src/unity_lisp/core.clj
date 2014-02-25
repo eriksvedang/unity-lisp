@@ -83,11 +83,11 @@
 (defn fn-def [return-type arglist body]
   (format "function(%s) : %s {\n%s}" arglist return-type body))
 
-(defn named-fn-def [fn-name return-type arglist body]
+(defn method-def [fn-name return-type arglist body]
   (format "function %s(%s) : %s {\n%s}" (js-naming fn-name) arglist return-type body))
 
-(defn static-named-fn-def [fn-name arglist body]
-  (format "static function %s(%s) : Object {\n%s}" (js-naming fn-name) arglist body))
+(defn static-named-fn-def [fn-name return-type arglist body]
+  (format "static function %s(%s) : %s {\n%s}" (js-naming fn-name) arglist return-type body))
 
 (defn return [code]
   (format "return %s" code))
@@ -99,10 +99,10 @@
   (format "if(%s) {\n%s} else {\n%s}" conditional body else-body))
 
 (defn let-statement [bindings body]
-  (format "function() : Object {\n%s%s}()" bindings body))
+  (format "function() : Object {/*let*/\n%s%s}()" bindings body))
 
 (defn do-statement [body]
-  (format "function() : Object {\n%s}()" body))
+  (format "function() : Object {/*do*/\n%s}()" body))
 
 (defn new-statement [type-name arglist]
   (format "new %s(%s)" type-name arglist))
@@ -131,6 +131,9 @@
 (defn update-statement [obj f]
   (format "%s = %s(%s)" obj f obj))
 
+(defn while-statement [check body]
+  (format "function() {\n%s}()" (with-indent (format "while(%s) {\n%s}\nreturn null;" check body))))
+
 
 
 
@@ -153,6 +156,7 @@
 (declare match-do-statement)
 (declare match-fn-def)
 (declare match-method-def)
+(declare match-defn)
 
 (defn match-list [l]
   (match l
@@ -174,7 +178,7 @@
          [[:word "deftype"] [:word class-name] [:vector & members] & body] (deftype-statement class-name members (match-class-body body))
 
          [[:word "fn"] [:vector & args] & body] (match-fn-def args body)
-         [[:word "defn"] [:word fn-name] [:vector & args] & body] (static-named-fn-def fn-name (match-args args) (match-body body false))
+         [[:word "defn"] [:word fn-name] [:vector & args] & body] (match-defn fn-name args body)
          [[:word "defmethod"] [:word fn-name] [:vector & args] & body] (match-method-def fn-name args body)
 
 ;         [[:word "fn"] [:word fn-name] [:vector & args] & body] (named-fn-def fn-name (match-args args) (match-body body false))
@@ -183,6 +187,8 @@
 
          [[:word "if"] conditional body else-body] (if-statement (match-form conditional) (match-form body) (match-form else-body))
          [[:word "do-if"] conditional body else-body] (do-if-statement (match-form conditional) (match-statement body) (match-statement else-body))
+         [[:word "do-if"] conditional body] (do-if-statement (match-form conditional) (match-statement body) "")
+         [[:word "while"] conditional & body] (while-statement (match-form conditional) (match-body body true))
 
          [[:method "." [:word method-name]] obj & args] (method-call method-name (match-form obj) (match-args args))
          [[:accessor ".-" [:word attribute]] obj] (access attribute (match-form obj))
@@ -217,13 +223,18 @@
 
 (defn match-method-def [fn-name args body]
   (if (has-x? body :yield)
-    (named-fn-def fn-name "IEnumerator" (match-args args) (match-body body true))
-    (named-fn-def fn-name "Object" (match-args args) (match-body body false))))
+    (method-def fn-name "IEnumerator" (match-args args) (match-body body true))
+    (method-def fn-name "Object" (match-args args) (match-body body false))))
 
 (defn match-fn-def [args body]
   (if (has-x? body :yield)
     (fn-def "IEnumerator" (match-args args) (match-body body true))
     (fn-def "Object" (match-args args) (match-body body false))))
+
+(defn match-defn [fn-name args body]
+  (if (has-x? body :yield)
+    (static-named-fn-def fn-name "IEnumerator" (match-args args) (match-body body true))
+    (static-named-fn-def fn-name "Object" (match-args args) (match-body body false))))
 
 (defn match-statement [form]
   (println form)
@@ -325,3 +336,6 @@
 (defn -main [& args]
   (let [path (if (< 0 (count args)) (first args) "./")]
     (watch path)))
+
+(comment
+  (watch "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp"))

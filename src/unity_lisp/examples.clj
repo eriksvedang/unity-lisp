@@ -120,6 +120,11 @@
 
 (lisp->js "(fn [x] (yield 100) 200)")
 
+(lisp->js "(defmethod x [y] z)")
+(lisp->js "(defmethod x [y] (yield 100))")
+(lisp->js "(defn x [] 100)")
+(lisp->js "(defn x [y] (yield 100))")
+
 
 
 (comment
