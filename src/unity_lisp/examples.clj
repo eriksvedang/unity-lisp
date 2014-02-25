@@ -130,8 +130,8 @@
 
 
 ; Functions:
-; assoc, assoc!, set-nth, shuffle, rand-nth, mapcat, filter, remove, loop/recur, count
-; concat, fnil, keys, vals, not, not=, update, update!, update-in, update-in!, get-in,
+; set-nth, mapcat, filter, remove, loop/recur, count
+; concat, fnil, keys, vals, not, not=, get-in,
 ; first, rest, apply (how?),
 
 

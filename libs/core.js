@@ -303,7 +303,32 @@ static function update_in_BANG(m, ks, f) {
 }
 
 
+static function keys(m) {
+  return m.Keys;
+}
 
+static function vals(m) {
+  return m.Values;
+}
 
+/*static function zipmap(ks, vs : IEnumerator) {
+  var n = new Hashtable();
+  var ke = ks.GetEnumerator();
+  var ve = vs.GetEnumerator();
+  while(ke.MoveNext()) {
+    ve.MoveNext();
+    n[ke.Current] = ve.Current;
+  }
+  return n;
+}*/
 
-
+static function zipmap(ks, vs) {
+  var n = new Hashtable();
+  var ke = ks.GetEnumerator();
+  var ve = vs.GetEnumerator();
+  while(ke.MoveNext()) {
+    ve.MoveNext();
+    n[ke.Current] = ve.Current;
+  }
+  return n;
+}

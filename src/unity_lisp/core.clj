@@ -155,6 +155,7 @@
          [[:word "set!"] variable form] (assign (match-form variable) (match-form form))
 
          [[:word "import"] [:word lib]] (str "import " lib)
+         [[:word "not"] form] (str "!(" (match-form form) ")")
          [[:word "update!"] form f] (update-statement (match-form form) (match-form f))
          [[:word "nth"] form index-form] (nth-statement (match-form form) (match-form index-form))
          [[:word "new"] [:word type-name] & args] (new-statement type-name (match-args args))
