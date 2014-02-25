@@ -124,6 +124,12 @@
 (defn lone-method-call [method-name]
   (format "function(__OBJ__) { return __OBJ__.%s(); }" method-name))
 
+(defn deftype-statement [class-name members body]
+  (format "public class %s {\n%s}" class-name body))
+
+(defn update-statement [obj f]
+  (format "%s = %s(%s)" obj f obj))
+
 
 
 ;; Pattern matching functions (takes parts of ASTs and generates js-strings)
@@ -131,6 +137,7 @@
 (declare match-args)
 (declare match-form)
 (declare match-body)
+(declare match-class-body)
 (declare match-statement)
 (declare match-vector)
 (declare match-bindings)
@@ -148,10 +155,12 @@
          [[:word "set!"] variable form] (assign (match-form variable) (match-form form))
 
          [[:word "import"] [:word lib]] (str "import " lib)
+         [[:word "update!"] form f] (update-statement (match-form form) (match-form f))
          [[:word "nth"] form index-form] (nth-statement (match-form form) (match-form index-form))
          [[:word "new"] [:word type-name] & args] (new-statement type-name (match-args args))
          [[:word "do"] & forms] (match-do-statement forms)
          [[:word "let"] [:vector & bindings] & body] (let-statement (match-bindings bindings) (match-body body false))
+         [[:word "deftype"] [:word class-name] [:vector & members] & body] (deftype-statement class-name members (match-class-body body))
 
          [[:word "fn"] [:vector & args] & body] (fn-def (match-args args) (match-body body false))
          [[:word "defn"] [:word fn-name] [:vector & args] & body] (static-named-fn-def fn-name (match-args args) (match-body body false))
@@ -186,12 +195,14 @@
   (clojure.string/join ", " (map match-form args)))
 
 (defn match-body [body is-void]
-  (clojure.string/join
-                       (concat (map #(with-indent (str (match-form %) ";")) (butlast body))
+  (clojure.string/join (concat (map #(with-indent (str (match-form %) ";")) (butlast body))
                                [(with-indent (let [last-statement (str (match-form (last body)) ";")]
                                                (if is-void
                                                  last-statement
                                                  (return last-statement))))])))
+
+(defn match-class-body [body]
+  (clojure.string/join (concat (map #(with-indent (str (match-form %) ";")) body))))
 
 (defn match-statement [form]
   (println form)
