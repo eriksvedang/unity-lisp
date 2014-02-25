@@ -4,6 +4,8 @@ static function _add_fn(a, b) { return a + b; }
 static function _sub_fn(a, b) { return a - b; }
 static function _mul_fn(a, b) { return a * b; }
 static function _div_fn(a, b) { return a / b; }
+static function _less_than_fn(a, b) { return a < b; }
+static function _greater_than_fn(a, b) { return a > b; }
 
 static function inc(x) { return x + 1; }
 static function dec(x) { return x - 1; }
@@ -156,7 +158,7 @@ static function HashToStr(hash) : String {
 	var s = "{";
 	var i = 0;
 	for(var o in hash) {
-		s += Str(o.Key) + ": " + Str(o.Value);
+		s += str(o.Key) + ": " + str(o.Value);
 		if(i < hash.Count - 1) {
 			s += ", ";
 		}
@@ -169,7 +171,7 @@ static function HashToStr(hash) : String {
 static function ArrayToStr(array : Array) : String {
 	var s = "[";
 	for (var i = 0; i < array.length; i++) {
-		s += Str(array[i]);
+		s += str(array[i]);
 		if(i < array.length - 1) {
 			s += ", ";
 		}
@@ -178,7 +180,7 @@ static function ArrayToStr(array : Array) : String {
 	return s;
 }
 
-static function Str(o) : String {
+static function str(o) : String {
 	if(o == null) {
 		return "nil";
 	}
@@ -187,10 +189,14 @@ static function Str(o) : String {
 		return ArrayToStr(o);
 	}
 	else if(t == typeof(Hashtable)) {
-		return o;
+		//return o.ToString();
+    return HashToStr(o);
 	}
 	else if(t == typeof(Boo.Lang.Hash)) {
 		return HashToStr(o);
+	}
+  else if(t == typeof(System.String)) {
+		return o.ToString();
 	}
   else {
     var enumerator = o as IEnumerator;
@@ -211,7 +217,7 @@ static function Str(o) : String {
 }
 
 static function pp(o) {
-	print(Str(o));
+	print(str(o));
 	return null;
 }
 
@@ -231,3 +237,47 @@ static function EnumerableToArray(coll : IEnumerable) {
   }
   return l;
 }
+
+
+static function _full_copy_map(m : Hashtable) {
+  var n = new Hashtable();
+  for(var k in m.Keys) {
+    n[k] = m[k];
+  }
+  return n;
+}
+
+static function assoc(m, k, v) {
+  var n = _full_copy_map(m);
+  n[k] = v;
+  return n;
+}
+
+static function assoc_BANG(m, k, v) {
+  m[k] = v;
+  return m;
+}
+
+static function assoc_in_BANG(m, ks, v) {
+  var i = 0;
+  while(i < (ks.Length - 1)) {
+    m = m[ks[i]];
+    i++;
+  }
+  m[ks[(ks.Length - 1)]] = v;
+}
+
+static function update_in_BANG(m, ks, f) {
+  var i = 0;
+  while(i < (ks.Length - 1)) {
+    m = m[ks[i]];
+    i++;
+  }
+  m[ks[(ks.Length - 1)]] = f(m[ks[(ks.Length - 1)]]);
+}
+
+
+
+
+
+
