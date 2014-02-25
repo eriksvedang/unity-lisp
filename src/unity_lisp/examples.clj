@@ -94,6 +94,7 @@
 
 (lisp->js "(fn [a] (max 5 10))")
 (lisp->js "#(max % 10)")
+(lisp->js "#(max 5 10)")
 
 (lisp->js "(map .-transform transforms)")
 
@@ -121,6 +122,8 @@
   (watch "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp"))
 
 
+(take 3 (iterate #(* 2 %) 10))
+(take 3 (repeatedly #(rand-int 10)))
 
 
 ; Compile keywords to functions possibly?

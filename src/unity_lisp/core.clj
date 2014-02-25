@@ -217,6 +217,14 @@
 (defn match-bindings [bindings]
   (clojure.string/join (map #(with-indent (str (match-binding %) ";")) (partition 2 bindings))))
 
+(defn match-sugar-lambda [body]
+  (if (empty? (filter #(= :percent-sign %) (flatten body)))
+    (fn-def "" (match-body [body] false))
+    (fn-def "__ARG__" (match-body [body] false))))
+
+(filter #(= :list %) (flatten [:list [:word "max"] [:number "5"] [:number "10"]]))
+;(flatten [[[1 2 3][4 [5 6]] 7 8] 0])
+
 (defn match-infix [op]
   (case op
     "+" "_add_fn"
@@ -239,7 +247,7 @@
            [:list & l] (match-list l)
            [:map & m] (match-map m)
            [:infix-operator op] (match-infix op)
-           [:sugar-lambda body] (fn-def "__ARG__" (match-body [body] false))
+           [:sugar-lambda body] (match-sugar-lambda body)
            [:percent-sign "%"] "__ARG__"
            [:accessor ".-" [:word attribute]] (attribute-accessor-fn attribute)
            [:keyword [:word keyword-name]] (str "\"" keyword-name "\"")
