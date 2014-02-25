@@ -117,11 +117,8 @@
 
 
 
-;(watch "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp")
-
-
-(on-file-event :modify "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp/hej.clj")
-(on-file-event :modify "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp/utils.clj")
+(comment
+  (watch "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp"))
 
 
 

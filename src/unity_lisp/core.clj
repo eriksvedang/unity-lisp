@@ -1,8 +1,8 @@
 (ns unity-lisp.core
   (:gen-class)
   (:require [instaparse.core :as insta]
-            [clojure-watch.core :refer [start-watch]]
-            [clojure.core.match :refer [match]]))
+            [clojure.core.match :refer [match]]
+            [watchtower.core :refer [watcher extensions rate ignore-dotfiles file-filter on-change]]))
 
 (def p
   (insta/parser
@@ -36,7 +36,7 @@
      comment = #';.*'"))
 
 
-;; Helpers
+;; Js generator helpers
 
 (defn with-indent [code]
   (clojure.string/join
@@ -113,13 +113,16 @@
   (format "%s.%s" obj attr))
 
 (defn attribute-accessor-fn [attribute]
-  (format "function(obj) { return obj.%s; }" attribute))
+  (format "function(__OBJ__) { return __OBJ__.%s; }" attribute))
 
 (defn keyword-access [keyword-name obj]
   (format "%s[%s]" obj (str "\"" keyword-name "\"")))
 
 (defn keyword-fn [keyword-name]
-  (format "function(m) { return m[%s]; }" keyword-name))
+  (format "function(__MAP__) { return __MAP__[%s]; }" keyword-name))
+
+(defn lone-method-call [method-name]
+  (format "function(__OBJ__) { return __OBJ__.%s(); }" method-name))
 
 
 
@@ -137,27 +140,36 @@
 
 (defn match-list [l]
   (match l
-         [[:word "set!"] variable form] (assign (match-form variable) (match-form form))
          [[:word "def"] [:word variable] form] (define variable (match-form form))
          [[:word "def"] [:word type-name] [:word variable] form] (define-typed type-name variable (match-form form))
          [[:word "def-static"] [:word variable] form] (define-static variable (match-form form))
          [[:word "def-static"] [:word type-name] [:word variable] form] (define-typed-static type-name variable (match-form form))
-         [[:accessor ".-" [:word attribute]] obj] (access attribute (match-form obj))
+
+         [[:word "set!"] variable form] (assign (match-form variable) (match-form form))
+
          [[:word "import"] [:word lib]] (str "import " lib)
          [[:word "nth"] form index-form] (nth-statement (match-form form) (match-form index-form))
          [[:word "new"] [:word type-name] & args] (new-statement type-name (match-args args))
          [[:word "do"] & forms] (match-do-statement forms)
-         [[:infix-operator op] a b] (infix op (match-form a) (match-form b))
+         [[:word "let"] [:vector & bindings] & body] (let-statement (match-bindings bindings) (match-body body false))
+
          [[:word "fn"] [:vector & args] & body] (fn-def (match-args args) (match-body body false))
-         [[:word "fn"] [:word fn-name] [:vector & args] & body] (named-fn-def fn-name (match-args args) (match-body body false))
-         [[:word "fn"] [:word "void"] [:word fn-name] [:vector & args] & body] (named-fn-def fn-name (match-args args) (match-body body true))
          [[:word "defn"] [:word fn-name] [:vector & args] & body] (static-named-fn-def fn-name (match-args args) (match-body body false))
-         [[:word "void"] [:word fn-name] [:vector & args] & body] (named-fn-def fn-name (match-args args) (match-body body true))
+         [[:word "defmethod"] [:word fn-name] [:vector & args] & body] (named-fn-def fn-name (match-args args) (match-body body false))
+
+;         [[:word "fn"] [:word fn-name] [:vector & args] & body] (named-fn-def fn-name (match-args args) (match-body body false))
+;         [[:word "void"] [:word fn-name] [:vector & args] & body] (named-fn-def fn-name (match-args args) (match-body body true))
+;         [[:word "fn"] [:word "void"] [:word fn-name] [:vector & args] & body] (named-fn-def fn-name (match-args args) (match-body body true))
+
          [[:word "if"] conditional body else-body] (if-statement (match-form conditional) (match-form body) (match-form else-body))
          [[:word "do-if"] conditional body else-body] (do-if-statement (match-form conditional) (match-statement body) (match-statement else-body))
-         [[:word "let"] [:vector & bindings] & body] (let-statement (match-bindings bindings) (match-body body false))
+
          [[:method "." [:word method-name]] obj & args] (method-call method-name (match-form obj) (match-args args))
+         [[:accessor ".-" [:word attribute]] obj] (access attribute (match-form obj))
+
+         [[:infix-operator op] a b] (infix op (match-form a) (match-form b))
          [[:keyword [:word keyword-name]] obj] (keyword-access keyword-name (match-form obj))
+
          [f & args] (fn-call (match-form f) (match-args args))
          :else (str " /* Failed to match list " (str l) " */ ")))
 
@@ -198,7 +210,9 @@
     "+" "_add_fn"
     "-" "_sub_fn"
     "*" "_mul_fn"
-    "/" "_div_fn"))
+    "/" "_div_fn"
+    "<" "_less_than_fn"
+    ">" "_greater_than_fn"))
 
 (defn match-method [])
 
@@ -218,6 +232,7 @@
            [:accessor ".-" [:word attribute]] (attribute-accessor-fn attribute)
            [:keyword [:word keyword-name]] (str "\"" keyword-name "\"")
            [:keyword-fn k] (keyword-fn (match-form k))
+           [:method "." [:word method-name]] (lone-method-call method-name)
            :else (str " /* Failed to match form " form " */ ")))
 
 
@@ -248,28 +263,24 @@
 (defn clj-to-js-path [clj-path]
   (clojure.string/replace clj-path #".clj" ".js"))
 
-(defn process-path [path]
-  (->> (slurp path)
-      lisp->js
-      (str "import core;\n\n")
-      (spit (clj-to-js-path path))))
+(defn process-file [path]
+  (let [js-filename (clj-to-js-path path)]
+    (->> (slurp path)
+         lisp->js
+         (str "import core;\n\n")
+         (spit js-filename))
+    (println "Saved" js-filename)))
 
-(defn clj? [path]
-  (re-find #".clj" path))
-
-(defn on-file-event [event path]
-  (println event path)
-  (if (or (= event :create) (= event :modify))
-    (if (clj? path)
-      (process-path path)
-      (println "Not a .clj file"))))
+(defn process-files [files]
+  (doseq [f files]
+    (process-file f)))
 
 (defn watch [path]
-  (start-watch [{:path path
-                 :event-types [:create :modify :delete]
-                 :bootstrap (fn [path] (println "Starting to watch" path))
-                 :callback on-file-event
-                 :options {:recursive true}}]))
+  (watcher [path]
+           (rate 1000) ; ms
+           (file-filter ignore-dotfiles)
+           (file-filter (extensions :clj :cljs))
+           (on-change process-files)))
 
 (defn -main [& args]
   (let [path (if (< 0 (count args)) (first args) "./")]
