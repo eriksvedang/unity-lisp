@@ -30,7 +30,7 @@
      method = '.' word
      yield = 'yield'
      word = #'[a-zA-Z!?]+[a-zA-Z!?.0-9-<>]*'
-     string = <quote> #'[a-zA-Z!?10-9 :;]+' <quote>
+     string = <quote> #'[a-zA-Z!?10-9 .:;]+' <quote>
      quote = '\"'
      keyword = <':'> word
      keyword-fn = <'λ'> token
@@ -95,8 +95,11 @@
 (defn if-statement [conditional body else-body]
   (format "(%s ? %s : %s)" conditional body else-body))
 
+(defn wrap-in-function [code]
+  (format "function() {\n%s\treturn null;\n}()" (with-indent code)))
+
 (defn do-if-statement [conditional body else-body]
-  (format "if(%s) {\n%s} else {\n%s}" conditional body else-body))
+  (wrap-in-function (format "if(%s) {\n%s} else {\n%s}" conditional body else-body)))
 
 (defn let-statement [bindings body]
   (format "function() : Object {/*let*/\n%s%s}()" bindings body))
@@ -132,7 +135,7 @@
   (format "%s = %s(%s)" obj f obj))
 
 (defn while-statement [check body]
-  (format "function() {\n%s}()" (with-indent (format "while(%s) {\n%s}\nreturn null;" check body))))
+  (wrap-in-function (format "while(%s) {\n%s}" check body)))
 
 
 
