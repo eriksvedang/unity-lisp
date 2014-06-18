@@ -164,6 +164,10 @@
   (is (= (lisp->js "(def y 10)")
          "var y = 10;")))
 
+(deftest generate-define-var-no-assignment
+  (is (= (lisp->js "(def ^string y)")
+         "var y : string;")))
+
 (deftest generate-var-with-dashes-in-name
   (is (= (lisp->js "(def name-with-dashes awesome?!)")
          "var name_with_dashes = awesome_QMARK_BANG;")))
@@ -187,6 +191,10 @@
 (deftest generate-static-var
   (is (= (lisp->js "(def-static foo [1 2 3])")
          "static var foo = [1, 2, 3];")))
+
+(deftest generate-static-var-no-assignment
+  (is (= (lisp->js "(def-static ^string y)")
+         "static var y : string;")))
 
 (deftest generate-static-var-with-type
   (is (= (lisp->js "(def-static Vector3 my-vector nil)")
@@ -222,11 +230,6 @@
 (deftest generate-sugar-lambda-no-parameter
   (is (= (lisp->js "#(max 5 10)")
          "function() : Object {\n\treturn max(5, 10);\n};")))
-
-;; TODO: fix!
-;; (deftest generate-named-function
-;;   (is (= (lisp->js "(fn f [a b] (f a b))")
-;;          "")))
 
 (deftest generate-define-function-no-args
   (is (= (lisp->js "(defn x [] 100)")

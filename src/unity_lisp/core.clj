@@ -62,17 +62,17 @@
 (defn assign [variable code]
   (format "%s = %s" (js-naming variable) code))
 
-(defn define [variable code]
-  (format "var %s = %s" (js-naming variable) code))
+(defn define
+  ([variable]
+   (format "var %s" (js-naming variable)))
+  ([variable code]
+   (format "var %s = %s" (js-naming variable) code)))
 
-(defn define-static [variable code]
-  (str "static " (define variable code)))
-
-(defn define-typed [type-name variable code]
-  (format "var %s : %s = %s" (js-naming variable) type-name code))
-
-(defn define-typed-static [type-name variable code]
-  (str "static " (define-typed type-name variable code)))
+(defn define-static
+  ([variable]
+   (str "static " (define variable)))
+  ([variable code]
+   (str "static " (define variable code))))
 
 (defn infix [op a b]
   (format "(%s %s %s)" a op b))
@@ -179,8 +179,13 @@
   (match l
          [[:word "def"] [:word variable] form] (define variable (match-form form))
          [[:word "def"] [:hint & x] form] (define (match-hint x) (match-form form))
+         [[:word "def"] [:hint & x]] (define (match-hint x))
+         [[:word "def"] [:word variable]] (str " /* Must use type hints when not assigning var '" variable "' at definition */")
+
          [[:word "def-static"] [:word variable] form] (define-static variable (match-form form))
-         [[:word "def-static"] [:word type-name] [:word variable] form] (define-typed-static type-name variable (match-form form))
+         [[:word "def-static"] [:word type-name] [:word variable] form] (define-static type-name variable (match-form form))
+         [[:word "def-static"] [:hint & x]] (define-static (match-hint x))
+         [[:word "def-static"] [:word variable]] (str " /* Must use type hints when not assigning var '" variable "' at definition */")
 
          [[:word "set!"] variable form] (assign (match-form variable) (match-form form))
 
