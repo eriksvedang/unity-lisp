@@ -1,11 +1,5 @@
 (use 'unity-lisp.core)
 
-(defn spit-and-print [s]
-  (do
-    (spit "out.js" s)
-    s))
-
-
 ;; Grammar
 (p "")
 (p "beta")
@@ -124,37 +118,4 @@
 (lisp->js "(defmethod x [y] (yield 100))")
 (lisp->js "(defn x [] 100)")
 (lisp->js "(defn x [y] (yield 100))")
-
-
-
-(comment
-  (watch "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp"))
-
-
-(take 3 (iterate #(* 2 %) 10))
-(take 3 (repeatedly #(rand-int 10)))
-
-
-; Compile keywords to functions possibly?
-
-; Add:
-; loop
-
-
-; Functions:
-; set-nth, mapcat, filter, remove, loop/recur, count
-; concat, fnil, keys, vals, not, not=, get-in,
-; first, rest, apply (how?),
-
-
-; Macros:
-; -> ->> if-let when do-when
-
-
-
-
-
-
-
-
 

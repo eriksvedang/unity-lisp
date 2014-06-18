@@ -1,3 +1,3 @@
-function(__ARG__) : Object {
-	return max(__ARG__, 10);
-};
+take(3, iterate(function(__ARG__) : Object {
+	return (2 * __ARG__);
+}, 10));
