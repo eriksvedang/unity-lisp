@@ -244,10 +244,13 @@
 (defn match-class-body [body]
   (clojure.string/join (concat (map #(with-indent (str (match-form %) ";")) body))))
 
-(defn match-method-def [fn-name args body]
-  (if (has-x? body :yield)
-    (method-def fn-name "IEnumerator" (match-args args) (match-body body true))
-    (method-def fn-name "Object" (match-args args) (match-body body false))))
+(defn match-method-def
+  ([fn-name args body]
+   (match-method-def fn-name args body false))
+  ([fn-name args body is-void]
+   (if (has-x? body :yield)
+     (method-def fn-name "IEnumerator" (match-args args) (match-body body true))
+     (method-def fn-name "Object" (match-args args) (match-body body is-void)))))
 
 (defn match-fn-def
   ([args body]

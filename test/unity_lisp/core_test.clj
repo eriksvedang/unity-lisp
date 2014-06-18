@@ -215,6 +215,10 @@
   (is (= (lisp->js "(defmethod x [y] z)")
          "function x(y) : Object {\n\treturn z;\n};")))
 
+(deftest generate-void-method
+  (is (= (lisp->js "(defvoid tick [f] (map f ents))")
+         "function tick(f) : Object {\n\tmap(f, ents);\n};")))
+
 (deftest generate-anonymous-function
   (is (= (lisp->js "(fn [a] a b)")
          "function(a) : Object {\n\ta;\n\treturn b;\n};")))
@@ -242,6 +246,7 @@
 (deftest generate-define-function-with-question-mark
   (is (= (lisp->js "(defn awesome? [best-guess] (swipe! x))")
          "static function isAwesome(best_guess) : Object {\n\treturn swipe_BANG(x);\n};")))
+
 
 ;; If-expressions
 

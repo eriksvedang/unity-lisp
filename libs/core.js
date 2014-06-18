@@ -3,6 +3,7 @@
 static function _add_fn(a, b) { return a + b; }
 static function _sub_fn(a, b) { return a - b; }
 static function _mul_fn(a, b) { return a * b; }
+static function _mul_fn(a, b, c) { return a * b * c; }
 static function _div_fn(a, b) { return a / b; }
 static function _less_than_fn(a, b) { return a < b; }
 static function _greater_than_fn(a, b) { return a > b; }
@@ -10,6 +11,9 @@ static function _greater_than_fn(a, b) { return a > b; }
 static function inc(x) { return x + 1; }
 static function dec(x) { return x - 1; }
 static function identity(x) { return x; }
+
+static function isPos(x) { return x >= 0; }
+static function isZero(x) { return x == 0; }
 
 static function doall(e : IEnumerator) {
   while(e.MoveNext()) {
@@ -183,6 +187,12 @@ static function repeatedly(f) {
   }
 }
 
+static function repeat(x : Object) : IEnumerable {
+  while(true) {
+    yield x;
+  }
+}
+
 
 static function take(n, coll : IEnumerable) {
   return take(n, coll.GetEnumerator());
@@ -195,6 +205,7 @@ static function take(n, coll : IEnumerator) {
   }
 }
 
+// Map over one seq
 
 static function map(f : Function, e : IEnumerator) {
   while(e.MoveNext()) {
@@ -205,6 +216,32 @@ static function map(f : Function, e : IEnumerator) {
 static function map(f : Function, coll : IEnumerable) {
   return map(f, coll.GetEnumerator());
 }
+
+// Map over two seqs
+
+static function map(f : Function, e1 : IEnumerator, e2 : IEnumerator) {
+  while(e1.MoveNext() && e2.MoveNext()) {
+    yield f(e1.Current, e2.Current);
+  }
+}
+
+static function map(f : Function, coll1 : IEnumerable, coll2 : IEnumerable) {
+  return map(f, coll1.GetEnumerator(), coll2.GetEnumerator());
+}
+
+// Map over three seqs
+
+static function map(f : Function, e1 : IEnumerator, e2 : IEnumerator, e3 : IEnumerator) {
+  while(e1.MoveNext() && e2.MoveNext() && e3.MoveNext()) {
+    yield f(e1.Current, e2.Current, e3.Current);
+  }
+}
+
+static function map(f : Function, coll1 : IEnumerable, coll2 : IEnumerable, coll3 : IEnumerable) {
+  return map(f, coll1.GetEnumerator(), coll2.GetEnumerator(), coll3.GetEnumerator());
+}
+
+
 
 static function HashToStr(hash) : String {
 	var s = "{";
@@ -250,6 +287,9 @@ static function str(o) : String {
   else if(t == typeof(System.String)) {
 		return o.ToString();
 	}
+  else if(t == typeof(DictionaryEntry)) {
+    return "<" + str(o.Key) + " : " + str(o.Value) + ">";
+  }
   else {
     var enumerator = o as IEnumerator;
     var enumerable = o as IEnumerable;
@@ -266,6 +306,10 @@ static function str(o) : String {
 		  return o.ToString();
 	  }
   }
+}
+
+static function str(a, b) : String {
+  return str(a) + str(b);
 }
 
 static function pp(o) {
@@ -360,4 +404,6 @@ static function zipmap(ks, vs) {
 }
 
 
-
+static function v3(x, y, z) : Object {
+  return new Vector3(x, y, z);
+};
