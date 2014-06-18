@@ -1,22 +1,16 @@
 (use 'unity-lisp.core)
 
-(defn spit-and-print [s]
-  (do
-    (spit "out.js" s)
-    s))
-
 (comment
   (watch "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp"))
 
-; (process-file "./code/things.clj")
-
-
-
-; Compile keywords to functions possibly?
 
 ; Add:
 ; loop
+; line numbers in js-file
 
+; Bugs:
+; empty strings
+;
 
 ; Functions:
 ; set-nth, mapcat, filter, remove, loop/recur, count

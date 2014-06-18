@@ -1,6 +1,7 @@
 (ns unity-lisp.core
   (:gen-class)
   (:require [instaparse.core :as insta]
+            ;[fs.core :as filesystem]
             [clojure.core.match :refer [match]]
             [watchtower.core :refer [watcher extensions rate ignore-dotfiles file-filter on-change]]))
 
@@ -30,7 +31,7 @@
      method = '.' word
      yield = 'yield'
      word = #'[a-zA-Z!?]+[a-zA-Z!?.0-9-<>]*'
-     string = <quote> #'[a-zA-Z!?10-9 .:;]+' <quote>
+     string = <quote> #'[a-zA-Z!?10-9 .:;]*' <quote>
      quote = '\"'
      keyword = <':'> word
      keyword-fn = <'λ'> token
@@ -139,12 +140,17 @@
   (wrap-in-function (format "while(%s) {\n%s}" check body)))
 
 
-;; Helper
+;; Helpers
 
 (defn has-x?
   "Does the form 'body' contain x anywhere in it?"
   [body k]
   (seq (filter #(= k %) (flatten body))))
+
+(defn spit-and-return [s]
+  (do
+    (spit "out.js" s)
+    s))
 
 
 ;; Pattern matching functions (takes parts of ASTs and generates js-strings)
@@ -320,8 +326,9 @@
         all-except-last (drop-last path-segments)
         sub-path (clojure.string/join "/" all-except-last)
         new-dir-path (str sub-path "/" subfolder-name)]
-    (if (fs.core/mkdir new-dir-path)
-      (println "Created subfolder at" new-dir-path))))
+    ;(if (filesystem/mkdir new-dir-path)
+    ;  (println "Created subfolder at" new-dir-path))
+    ))
 
 (defn append-subfolder [file-path subfolder-name]
   (let [path-segments (clojure.string/split file-path #"/")
@@ -332,8 +339,18 @@
 
 (def out-folder-name "out")
 
+(defn guard-for-nil [msg x]
+  (when (nil? x)
+    (println msg)))
+
+(defn trace [x]
+  (println x)
+  x)
+
 (defn process-file [path]
-  (ensure-folder path out-folder-name)
+  (if (nil? path)
+    (throw (Exception. "Path was nil.")))
+  ;(ensure-folder path out-folder-name)
   (let [js-filename (append-subfolder (clj-to-js-path path) out-folder-name)]
     (->> (slurp path)
          lisp->js
@@ -342,15 +359,17 @@
     (println "Saved" js-filename)))
 
 (defn process-files [files]
-  (doseq [f files]
-    (process-file f)))
+  (let [file-paths (map #(. % getPath) files)]
+    (doseq [path file-paths]
+      (process-file path))))
 
 (defn watch [path]
   (watcher [path]
            (rate 1000) ; ms
            (file-filter ignore-dotfiles)
-           (file-filter (extensions :clj :cljs :lisp))
-           (on-change process-files)))
+           (file-filter (extensions :clj :cljs))
+           (on-change process-files))
+  (println "Started watching" path))
 
 (defn -main [& args]
   (let [path (if (< 0 (count args)) (first args) "./")]

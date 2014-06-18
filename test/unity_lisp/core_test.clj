@@ -47,6 +47,9 @@
   (is (= (p "\"erik\"")
          [:program [:string "erik"]])))
 
+(deftest parse-empty-string
+  (is (= (p "\"\"") [:program [:string ""]])))
+
 (deftest parse-map
   (is (= (p "{a 10}")
          [:program [:map [:word "a"] [:number "10"]]])))
