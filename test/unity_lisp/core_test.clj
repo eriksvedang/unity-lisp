@@ -47,6 +47,10 @@
   (is (= (p "\"erik\"")
          [:program [:string "erik"]])))
 
+(deftest parse-string-with-punctuation
+  (is (= (p "\".,?!;:\"")
+         [:program [:string ".,?!;:"]])))
+
 (deftest parse-empty-string
   (is (= (p "\"\"") [:program [:string ""]])))
 
@@ -78,11 +82,18 @@
   (is (= (p "(yield 50)")
          [:program [:list [:yield "yield"] [:number "50"]]])))
 
+(deftest parse-hint
+  (is (= (p "^float x")
+         [:program [:hint [:word "float"] [:word "x"]]])))
 
 ;;; Code generation
 
 
 ;; Constants
+
+(deftest generate-null
+  (is (= (lisp->js "nil")
+         "null;")))
 
 (deftest generate-number-constant
   (is (= (lisp->js "42")
@@ -170,7 +181,7 @@
          "function() : Object {/*let*/\n\tvar a = 10;\n\tvar b = 20;\n\treturn a;\n}();")))
 
 (deftest generate-var-with-type
-  (is (= (lisp->js "(def Vector3 my-vector nil)")
+  (is (= (lisp->js "(def ^Vector3 my-vector nil)")
          "var my_vector : Vector3 = null;")))
 
 (deftest generate-static-var
@@ -249,6 +260,10 @@
 (deftest generate-vector-with-value-from-nested-fn-call
   (is (= (lisp->js "[1 2 (f 3 4) 5]")
          "[1, 2, f(3, 4), 5];")))
+
+(deftest generate-vector-access
+  (is (= (lisp->js "(nth x 3)")
+         "x[3];")))
 
 
 ;; Maps

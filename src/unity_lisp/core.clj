@@ -23,15 +23,16 @@
      <emptylist> = lparen rparen
      <emptyvec> = lsquarebrack rsquarebrack
      <emptymap> = lcurly rcurly
-     <token> = word | number | infix-operator | string | accessor | method | sugar-lambda | percent-sign | keyword | keyword-fn | yield
+     <token> = hint | word | number | infix-operator | string | accessor | method | sugar-lambda | percent-sign | keyword | keyword-fn | yield
      whitespace = #'\\s+'
      number = #'-*[0-9]+\\.?[0-9]*'
      infix-operator = (#'[\\+\\*\\/]+' | 'is' | 'as' | '-' | 'and' | '==' | '!=' | '<' | '>' | '<=' | '>=' ) <#'\\s+'>
      accessor = '.-' word
      method = '.' word
      yield = 'yield'
+     hint = <'^'> word <whitespace> word
      word = #'[a-zA-Z!?]+[a-zA-Z!?.0-9-<>]*'
-     string = <quote> #'[a-zA-Z!?10-9 .:;]*' <quote>
+     string = <quote> #'[a-zA-Z!?10-9 ,.:;]*' <quote>
      quote = '\"'
      keyword = <':'> word
      keyword-fn = <'λ'> token
@@ -139,6 +140,9 @@
 (defn while-statement [check body]
   (wrap-in-function (format "while(%s) {\n%s}" check body)))
 
+(defn hint [h sym]
+  (format "%s : %s" sym h))
+
 
 ;; Helpers
 
@@ -169,11 +173,12 @@
 (declare match-fn-def)
 (declare match-method-def)
 (declare match-defn)
+(declare match-hint)
 
 (defn match-list [l]
   (match l
          [[:word "def"] [:word variable] form] (define variable (match-form form))
-         [[:word "def"] [:word type-name] [:word variable] form] (define-typed type-name variable (match-form form))
+         [[:word "def"] [:hint & x] form] (define (match-hint x) (match-form form))
          [[:word "def-static"] [:word variable] form] (define-static variable (match-form form))
          [[:word "def-static"] [:word type-name] [:word variable] form] (define-typed-static type-name variable (match-form form))
 
@@ -265,6 +270,11 @@
     (fn-def "Object" "__ARG__" (match-body [body] false))
     (fn-def "Object" "" (match-body [body] false))))
 
+(defn match-hint [x]
+  (match x
+         [[:word h] [:word sym]] (hint h sym)
+         :else (str " /* Failed to match hint (^) " x " */ ")))
+
 (defn match-infix [op]
   (case op
     "+" "_add_fn"
@@ -281,6 +291,7 @@
            nil "/* nothingness */"
            [:word "nil"] "null"
            [:word x] (js-naming x)
+           [:hint h sym] (match-hint [h sym])
            [:number n] n
            [:string s] (str "\"" s "\"")
            [:vector & v] (match-vector v)
