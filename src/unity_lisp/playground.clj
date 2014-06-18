@@ -4,7 +4,14 @@
   (watch "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp"))
 
 
+(reset-default-macros!)
 (lisp->js "(PI)")
+
+(lisp->js "(defmacro FI [] (print x))")
+(lisp->js "(FI)")
+
+macros
+
 
 
 ; Language features:

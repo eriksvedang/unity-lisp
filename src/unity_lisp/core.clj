@@ -19,7 +19,8 @@
 (defn get-macro [macro-name]
   (get @macros macro-name))
 
-(add-macro! [:word "PI"] [] [:number "42"])
+(defn reset-default-macros! []
+  (add-macro! "PI" [] [:number "42"]))
 
 
 ;; Parser
@@ -194,6 +195,7 @@
 (declare match-defn)
 (declare match-hint)
 (declare match-fn-or-macro-call)
+(declare match-macro-def)
 
 (defn match-list [l]
   (match l
@@ -224,6 +226,8 @@
          [[:word "defmethod"] [:word fn-name] [:vector & args] & body] (match-method-def fn-name args body)
          [[:word "defvoid"] [:word fn-name] [:vector & args] & body] (match-method-def fn-name args body true)
 
+         [[:word "defmacro"] [:word fn-name] [:vector & args] body] (match-macro-def fn-name args body)
+
 ;         [[:word "fn"] [:word fn-name] [:vector & args] & body] (named-fn-def fn-name (match-args args) (match-body body false))
 ;         [[:word "void"] [:word fn-name] [:vector & args] & body] (named-fn-def fn-name (match-args args) (match-body body true))
 ;         [[:word "fn"] [:word "void"] [:word fn-name] [:vector & args] & body] (named-fn-def fn-name (match-args args) (match-body body true))
@@ -244,12 +248,15 @@
 
 (defn macro-call [macro]
   (match-form (get macro :body)))
-  ;(str "/* MACRO: " macro "*/")
+
+;:else (str "/* Failed to match macro " macro "*/")))
 
 (defn match-fn-or-macro-call [f args]
-  (if-let [macro (get-macro f)]
-    (macro-call macro)
-    (fn-call (match-form f) (match-args args))))
+  (match f
+         [:word macro-name] (if-let [macro (get-macro macro-name)]
+                              (macro-call macro)
+                              (fn-call (match-form f) (match-args args)))
+         :else (fn-call (match-form f) (match-args args))))
 
 (defn match-do-statement [forms]
   (do-statement (match-body forms true)))
@@ -288,6 +295,10 @@
    (if (has-x? body :yield)
      (fn-def "IEnumerator" (match-args args) (match-body body true))
      (fn-def "Object" (match-args args) (match-body body is-void)))))
+
+(defn match-macro-def [macro-name args body]
+  (add-macro! macro-name args body)
+  (str "/* Defined macro " macro-name " */ "))
 
 (defn match-defn [fn-name args body]
   (if (has-x? body :yield)
@@ -424,6 +435,7 @@
   (println "Started watching" path))
 
 (defn -main [& args]
+  (reset-default-macros!)
   (let [path (if (< 0 (count args)) (first args) "./")]
     (watch path)))
 
