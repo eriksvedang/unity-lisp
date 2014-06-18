@@ -243,6 +243,24 @@ static function map(f : Function, coll1 : IEnumerable, coll2 : IEnumerable, coll
 
 
 
+static function first(e : IEnumerator) {
+  if(e.MoveNext()) {
+    return e.Current;
+  } else {
+    return null;
+  }
+}
+
+static function first(coll : IEnumerable) {
+  return first(coll.GetEnumerator());
+}
+
+static function first(a : Array) {
+  return a[0];
+}
+
+
+
 static function HashToStr(hash) : String {
 	var s = "{";
 	var i = 0;

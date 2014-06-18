@@ -4,6 +4,9 @@
   (watch "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp"))
 
 
+(lisp->js "(PI)")
+
+
 ; Language features:
 
 ; loop
@@ -35,7 +38,6 @@
 
 (take 5 (iterate #(* 2 %) 10))
 (take 3 (repeatedly #(rand-int 10)))
-
 
 
 

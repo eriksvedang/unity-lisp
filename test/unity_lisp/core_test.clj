@@ -345,3 +345,10 @@
   (is (= (lisp->js "(defn x [y] (yield 100))")
          "static function x(y) : IEnumerator {\n\tyield 100;\n};")))
 
+
+;; Macros
+
+(deftest generate-macro-expand-no-args
+  (is (= (lisp->js "(PI)")
+         "42;")))
+

@@ -5,6 +5,25 @@
             [clojure.core.match :refer [match]]
             [watchtower.core :refer [watcher extensions rate ignore-dotfiles file-filter on-change]]))
 
+
+;; Macros
+
+(def macros (atom {}))
+
+(defn clear-macros! []
+  (reset! macros []))
+
+(defn add-macro! [macro-name macro-args macro-body]
+  (swap! macros assoc macro-name {:args macro-args :body macro-body}))
+
+(defn get-macro [macro-name]
+  (get @macros macro-name))
+
+(add-macro! [:word "PI"] [] [:number "42"])
+
+
+;; Parser
+
 (def p
   (insta/parser
     "program = <whitespace>* (form <whitespace>*)*
@@ -174,6 +193,7 @@
 (declare match-method-def)
 (declare match-defn)
 (declare match-hint)
+(declare match-fn-or-macro-call)
 
 (defn match-list [l]
   (match l
@@ -219,8 +239,17 @@
          [[:infix-operator op] a b] (infix op (match-form a) (match-form b))
          [[:keyword [:word keyword-name]] obj] (keyword-access keyword-name (match-form obj))
 
-         [f & args] (fn-call (match-form f) (match-args args))
+         [f & args] (match-fn-or-macro-call f args)
          :else (str " /* Failed to match list " (str l) " */ ")))
+
+(defn macro-call [macro]
+  (match-form (get macro :body)))
+  ;(str "/* MACRO: " macro "*/")
+
+(defn match-fn-or-macro-call [f args]
+  (if-let [macro (get-macro f)]
+    (macro-call macro)
+    (fn-call (match-form f) (match-args args))))
 
 (defn match-do-statement [forms]
   (do-statement (match-body forms true)))
@@ -397,3 +426,5 @@
 (defn -main [& args]
   (let [path (if (< 0 (count args)) (first args) "./")]
     (watch path)))
+
+
