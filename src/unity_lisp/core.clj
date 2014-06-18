@@ -315,8 +315,26 @@
 (defn clj-to-js-path [clj-path]
   (clojure.string/replace clj-path #".clj" ".js"))
 
+(defn ensure-folder [file-path subfolder-name]
+  (let [path-segments (clojure.string/split file-path #"/")
+        all-except-last (drop-last path-segments)
+        sub-path (clojure.string/join "/" all-except-last)
+        new-dir-path (str sub-path "/" subfolder-name)]
+    (if (fs.core/mkdir new-dir-path)
+      (println "Created subfolder at" new-dir-path))))
+
+(defn append-subfolder [file-path subfolder-name]
+  (let [path-segments (clojure.string/split file-path #"/")
+        last-item (last path-segments)
+        all-except-last (drop-last path-segments)
+        out-path (clojure.string/join "/" all-except-last)]
+    (str out-path "/" subfolder-name "/" last-item)))
+
+(def out-folder-name "out")
+
 (defn process-file [path]
-  (let [js-filename (clj-to-js-path path)]
+  (ensure-folder path out-folder-name)
+  (let [js-filename (append-subfolder (clj-to-js-path path) out-folder-name)]
     (->> (slurp path)
          lisp->js
          (str "import core;\n\n")
@@ -331,7 +349,7 @@
   (watcher [path]
            (rate 1000) ; ms
            (file-filter ignore-dotfiles)
-           (file-filter (extensions :clj :cljs))
+           (file-filter (extensions :clj :cljs :lisp))
            (on-change process-files)))
 
 (defn -main [& args]

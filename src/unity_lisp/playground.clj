@@ -8,8 +8,7 @@
 (comment
   (watch "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp"))
 
-(let [input (slurp "./src/unity_lisp/temp.clj")]
-  (spit-and-print (lisp->js input)))
+; (process-file "./code/things.clj")
 
 
 
