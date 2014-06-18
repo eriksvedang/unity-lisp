@@ -150,6 +150,10 @@
   (is (= (lisp->js "(def y 10)")
          "var y = 10;")))
 
+(deftest generate-var-with-dashes-in-name
+  (is (= (lisp->js "(def name-with-dashes awesome?!)")
+         "var name_with_dashes = awesome_QMARK_BANG;")))
+
 (deftest generate-set-var
   (is (= (lisp->js "(set! x 100)")
          "x = 100;")))
@@ -161,6 +165,18 @@
 (deftest generate-let-bindings
   (is (= (lisp->js "(let [a 10 b 20] a)")
          "function() : Object {/*let*/\n\tvar a = 10;\n\tvar b = 20;\n\treturn a;\n}();")))
+
+(deftest generate-var-with-type
+  (is (= (lisp->js "(def Vector3 my-vector nil)")
+         "var my_vector : Vector3 = null;")))
+
+(deftest generate-static-var
+  (is (= (lisp->js "(def-static foo [1 2 3])")
+         "static var foo = [1, 2, 3];")))
+
+(deftest generate-static-var-with-type
+  (is (= (lisp->js "(def-static Vector3 my-vector nil)")
+         "static var my_vector : Vector3 = null;")))
 
 
 ;; Defining functions and lambdas
@@ -185,6 +201,14 @@
 ;; (deftest generate-named-function
 ;;   (is (= (lisp->js "(fn f [a b] (f a b))")
 ;;          "")))
+
+(deftest generate-define-function
+  (is (= (lisp->js "(defn foo [x] (* x x))")
+         "static function foo(x) : Object {\n\treturn (x * x);\n};")))
+
+(deftest generate-define-function-with-question-mark
+  (is (= (lisp->js "(defn awesome? [best-guess] (swipe! x))")
+         "static function isAwesome(best_guess) : Object {\n\treturn swipe_BANG(x);\n};")))
 
 
 ;; If-expressions
@@ -224,7 +248,7 @@
          "{a: 3, b: 4};")))
 
 
-;; Member variable get/set
+;; Member variables and methods
 
 (deftest generate-member-accessor
   (is (= (lisp->js "(.-hej.san o)")
@@ -234,7 +258,17 @@
   (is (= (lisp->js "(set! (.-transform o) (new Vector3 0 0 0))")
          "o.transform = new Vector3(0, 0, 0);")))
 
+(deftest generate-map-over-member
+  (is (= (lisp->js "(map .-transform transforms)")
+         "map(function(__OBJ__) { return __OBJ__.transform; }, transforms);")))
 
+(deftest generate-call-method
+  (is (= (lisp->js "(.foo p)")
+         "p.foo();")))
+
+(deftest generate-call-method-with-args
+  (is (= (lisp->js "(.Rotate transform 10 20 30)")
+         "transform.Rotate(10, 20, 30);")))
 
 
 
@@ -250,7 +284,34 @@
   (is (=
          "")))
 
+(deftest generate-
+  (is (=
+         "")))
 
+(deftest generate-
+  (is (=
+         "")))
+
+
+
+
+
+
+
+
+
+(lisp->js ":red")
+(lisp->js "(:green colors)")
+(lisp->js "(map λ:age peeps)")
+
+(lisp->js "(def a->b 10)")
+
+(lisp->js "(fn [x] (yield 100) 200)")
+
+(lisp->js "(defmethod x [y] z)")
+(lisp->js "(defmethod x [y] (yield 100))")
+(lisp->js "(defn x [] 100)")
+(lisp->js "(defn x [y] (yield 100))")
 
 
 
