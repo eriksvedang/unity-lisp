@@ -183,7 +183,7 @@
          [[:word "def"] [:word variable]] (str " /* Must use type hints when not assigning var '" variable "' at definition */")
 
          [[:word "def-static"] [:word variable] form] (define-static variable (match-form form))
-         [[:word "def-static"] [:word type-name] [:word variable] form] (define-static type-name variable (match-form form))
+         [[:word "def-static"] [:hint & x] form] (define-static (match-hint x) (match-form form))
          [[:word "def-static"] [:hint & x]] (define-static (match-hint x))
          [[:word "def-static"] [:word variable]] (str " /* Must use type hints when not assigning var '" variable "' at definition */")
 
@@ -202,6 +202,7 @@
          [[:word "fn"] [:vector & args] & body] (match-fn-def args body)
          [[:word "defn"] [:word fn-name] [:vector & args] & body] (match-defn fn-name args body)
          [[:word "defmethod"] [:word fn-name] [:vector & args] & body] (match-method-def fn-name args body)
+         [[:word "defvoid"] [:word fn-name] [:vector & args] & body] (match-method-def fn-name args body true)
 
 ;         [[:word "fn"] [:word fn-name] [:vector & args] & body] (named-fn-def fn-name (match-args args) (match-body body false))
 ;         [[:word "void"] [:word fn-name] [:vector & args] & body] (named-fn-def fn-name (match-args args) (match-body body true))
@@ -248,10 +249,13 @@
     (method-def fn-name "IEnumerator" (match-args args) (match-body body true))
     (method-def fn-name "Object" (match-args args) (match-body body false))))
 
-(defn match-fn-def [args body]
-  (if (has-x? body :yield)
-    (fn-def "IEnumerator" (match-args args) (match-body body true))
-    (fn-def "Object" (match-args args) (match-body body false))))
+(defn match-fn-def
+  ([args body]
+   (match-fn-def args body false))
+  ([args body is-void]
+   (if (has-x? body :yield)
+     (fn-def "IEnumerator" (match-args args) (match-body body true))
+     (fn-def "Object" (match-args args) (match-body body is-void)))))
 
 (defn match-defn [fn-name args body]
   (if (has-x? body :yield)

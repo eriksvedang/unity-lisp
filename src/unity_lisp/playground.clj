@@ -8,8 +8,9 @@
 ; loop
 ; line numbers in js-file
 
+; Be able to use [2 3 4] as a Vector3 !!!
+
 ; Bugs:
-; empty strings
 ;
 
 ; Functions:

@@ -197,7 +197,7 @@
          "static var y : string;")))
 
 (deftest generate-static-var-with-type
-  (is (= (lisp->js "(def-static Vector3 my-vector nil)")
+  (is (= (lisp->js "(def-static ^Vector3 my-vector nil)")
          "static var my_vector : Vector3 = null;")))
 
 (deftest generate-use-GT-as-var-name
