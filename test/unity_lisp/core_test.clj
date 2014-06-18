@@ -178,10 +178,22 @@
   (is (= (lisp->js "(def-static Vector3 my-vector nil)")
          "static var my_vector : Vector3 = null;")))
 
+(deftest generate-use-GT-as-var-name
+  (is (= (lisp->js "(def a->b 10)")
+         "var a__GTb = 10;")))
+
+(deftest generate-use-LT-as-var-name
+  (is (= (lisp->js "(def a<-b 10)")
+         "var a_LT_b = 10;")))
+
 
 ;; Defining functions and lambdas
 
-(deftest generate-function
+(deftest generate-method
+  (is (= (lisp->js "(defmethod x [y] z)")
+         "function x(y) : Object {\n\treturn z;\n};")))
+
+(deftest generate-anonymous-function
   (is (= (lisp->js "(fn [a] a b)")
          "function(a) : Object {\n\ta;\n\treturn b;\n};")))
 
@@ -202,14 +214,17 @@
 ;;   (is (= (lisp->js "(fn f [a b] (f a b))")
 ;;          "")))
 
-(deftest generate-define-function
+(deftest generate-define-function-no-args
+  (is (= (lisp->js "(defn x [] 100)")
+         "static function x() : Object {\n\treturn 100;\n};")))
+
+(deftest generate-define-function-one-arg
   (is (= (lisp->js "(defn foo [x] (* x x))")
          "static function foo(x) : Object {\n\treturn (x * x);\n};")))
 
 (deftest generate-define-function-with-question-mark
   (is (= (lisp->js "(defn awesome? [best-guess] (swipe! x))")
          "static function isAwesome(best_guess) : Object {\n\treturn swipe_BANG(x);\n};")))
-
 
 ;; If-expressions
 
@@ -248,7 +263,7 @@
          "{a: 3, b: 4};")))
 
 
-;; Member variables and methods
+;; Member variables and methods access
 
 (deftest generate-member-accessor
   (is (= (lisp->js "(.-hej.san o)")
@@ -271,54 +286,36 @@
          "transform.Rotate(10, 20, 30);")))
 
 
+;; Keywords
 
-(deftest generate-
-  (is (=
-         "")))
+(deftest generate-keyword
+  (is (= (lisp->js ":red")
+         "\"red\";")))
 
-(deftest generate-
-  (is (=
-         "")))
+(deftest generate-keyword-lookup
+  (is (= (lisp->js "(:green colors)")
+         "colors[\"green\"];")))
 
-(deftest generate-
-  (is (=
-         "")))
+(deftest generate-lookup-keyword-fn
+  (is (= (lisp->js "λ:age")
+         "function(__MAP__) { return __MAP__[\"age\"]; };")))
 
-(deftest generate-
-  (is (=
-         "")))
-
-(deftest generate-
-  (is (=
-         "")))
+(deftest generate-map-keyword-over-map
+  (is (= (lisp->js "(map λ:age peeps)")
+         "map(function(__MAP__) { return __MAP__[\"age\"]; }, peeps);")))
 
 
+;; Yield
 
+(deftest generate-anonymous-function-yielding-value
+  (is (= (lisp->js "(fn [x] (yield 100) 200)")
+         "function(x) : IEnumerator {\n\tyield 100;\n\t200;\n};")))
 
+(deftest generate-method-with-yield
+  (is (= (lisp->js "(defmethod x [y] (yield 100))")
+         "function x(y) : IEnumerator {\n\tyield 100;\n};")))
 
-
-
-
-
-(lisp->js ":red")
-(lisp->js "(:green colors)")
-(lisp->js "(map λ:age peeps)")
-
-(lisp->js "(def a->b 10)")
-
-(lisp->js "(fn [x] (yield 100) 200)")
-
-(lisp->js "(defmethod x [y] z)")
-(lisp->js "(defmethod x [y] (yield 100))")
-(lisp->js "(defn x [] 100)")
-(lisp->js "(defn x [y] (yield 100))")
-
-
-
-
-
-;; (deftest generate-
-;;   (is (=
-;;          "")))
-
+(deftest generate-define-function-with-yield
+  (is (= (lisp->js "(defn x [y] (yield 100))")
+         "static function x(y) : IEnumerator {\n\tyield 100;\n};")))
 

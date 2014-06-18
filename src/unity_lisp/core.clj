@@ -54,6 +54,7 @@
       (clojure.string/replace "?" "_QMARK")
       (clojure.string/replace "!" "_BANG")))
 
+
 ;; Javscript output, all these functions takes and returns strings
 
 (defn assign [variable code]
@@ -138,14 +139,16 @@
   (wrap-in-function (format "while(%s) {\n%s}" check body)))
 
 
-
+;; Helper
 
 (defn has-x?
   "Does the form 'body' contain x anywhere in it?"
   [body k]
   (seq (filter #(= k %) (flatten body))))
 
+
 ;; Pattern matching functions (takes parts of ASTs and generates js-strings)
+
 (declare match-list)
 (declare match-args)
 (declare match-form)
@@ -256,9 +259,6 @@
     (fn-def "Object" "__ARG__" (match-body [body] false))
     (fn-def "Object" "" (match-body [body] false))))
 
-(filter #(= :list %) (flatten [:list [:word "max"] [:number "5"] [:number "10"]]))
-;(flatten [[[1 2 3][4 [5 6]] 7 8] 0])
-
 (defn match-infix [op]
   (case op
     "+" "_add_fn"
@@ -290,7 +290,6 @@
            :else (str " /* Failed to match form " form " */ ")))
 
 
-
 ;; Putting it all together
 
 (defn tree->js
@@ -309,7 +308,6 @@
   [code]
   (let [tree (p code)]
     (tree->js tree)))
-
 
 
 ;; File watcher
@@ -339,6 +337,3 @@
 (defn -main [& args]
   (let [path (if (< 0 (count args)) (first args) "./")]
     (watch path)))
-
-(comment
-  (watch "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp"))
