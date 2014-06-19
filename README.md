@@ -1,6 +1,6 @@
 # Unity Lisp
 
-A Clojure program that translates (very Clojure-like) Lisp code to Unity Script.
+A program that translates (very Clojure-like) lisp code to Unity Script.
 
 The target audience is people who desperately crave macros and lisp terseness when making games using the excellent [Unity](http://www.unity3d.com) game engine.
 
@@ -9,7 +9,7 @@ Tries to compile into efficient and readable Unity Script – not overly concern
 
 ## Usage
 
-* Clone this repo and compile using Leiningen:
+* Clone this repo and compile using [Leiningen](http://leiningen.org/):
 ```bash
 lein uberjar
 ```
@@ -23,13 +23,9 @@ java -jar Unity-Lisp-0.1.0-uberjar.jar
 * Attach the generated .js-files as components to your game objects and prefabs. When the source file (written in Unity Lisp) changes the component will be automatically updated!
 
 
-## Important information
-- *defvoid* must be used to define functions that calls a void function at tail position instead of returning a value, use this for overriding the built in MonoBehaviour methods
-- *defn* will generate a static function, use *defmethod* for generating methods that can mutate the state of your component
-- keywords (i.e. :red) will compile to a string, use the funky λ:red syntax to make it into a function that looks up itself in a map
-
-
 ## Examples
+
+### Rotator
 Here's a simple Unity component that will make a game object rotate infinitely:
 ```clojure
 (def ^float rot-speed 10)
@@ -46,7 +42,23 @@ function Update() {
 }
 ```
 
+### Want more?
 Have a look at the test suit for more examples of what you can do.
+
+
+## Important details
+- *defvoid* must be used to define functions that calls a void function at tail position instead of returning a value, use this for overriding the built in MonoBehaviour methods. If anyone knows how to get around this limitation, please help out :)
+- *defn* will generate a static function, use *defmethod* for generating methods that can mutate the state of your component
+- keywords (i.e. :red) will compile to a string, use the funky λ:red syntax to make it into a function that looks up itself in a map
+
+
+## Things that are missing from Clojure
+* Macros (this is priority #1 right now)
+* List comprehensions (also coming soon)
+* Persistent data structures
+* Metadata
+* Very useful libraries like core.async, core.match, etc
+* Lots more...
 
 
 ## Bugs
