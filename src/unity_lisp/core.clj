@@ -389,8 +389,8 @@
         all-except-last (drop-last path-segments)
         sub-path (clojure.string/join "/" all-except-last)
         new-dir-path (str sub-path "/" subfolder-name)]
-    ;(if (filesystem/mkdir new-dir-path)
-    ;  (println "Created subfolder at" new-dir-path))
+    (if (.mkdir (java.io.File. new-dir-path))
+      (println "Created subfolder at" new-dir-path))
     ))
 
 (defn append-subfolder [file-path subfolder-name]
@@ -411,9 +411,11 @@
   x)
 
 (defn process-file [path]
+  (assert (= (class path) java.lang.String))
+  (println "Will process Unity Lisp file:" path)
   (if (nil? path)
     (throw (Exception. "Path was nil.")))
-  ;(ensure-folder path out-folder-name)
+  (ensure-folder path out-folder-name)
   (let [js-filename (append-subfolder (clj-to-js-path path) out-folder-name)]
     (->> (slurp path)
          lisp->js
@@ -432,7 +434,7 @@
            (file-filter ignore-dotfiles)
            (file-filter (extensions :clj :cljs))
            (on-change process-files))
-  (println "Started watching" path))
+  (println "Started watching dir for Unity Lisp files:" path))
 
 (defn -main [& args]
   (reset-default-macros!)

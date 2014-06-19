@@ -17,7 +17,7 @@ lein uberjar
 * Also make sure that the 'core.js' file is somewhere in your project folder
 * Run the jar in a folder with your Unity-lisp files:
 ```bash
-java -jar Unity-Lisp-0.1.0-uberjar.jar
+java -jar unity-lisp-0.1.0-standalone.jar
 ```
 * The output will be put into a subfolder called '/out'
 * Attach the generated .js-files as components to your game objects and prefabs. When the source file (written in Unity Lisp) changes the component will be automatically updated!
