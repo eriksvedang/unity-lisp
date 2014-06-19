@@ -2,7 +2,7 @@
 
 A Clojure program that translates (very Clojure-like) Lisp code to Unity Script.
 
-The target audience is people who desperately crave macros and lisp terseness when making games using the excellent (Unity)[http://www.unity3d.com] game engine.
+The target audience is people who desperately crave macros and lisp terseness when making games using the excellent [Unity](http://www.unity3d.com) game engine.
 
 Tries to compile into efficient and readable Unity Script – not overly concerned with immutability at the moment (but a lot better than normal C# / Unity Script). Uses the IEnumerable interface to get some of the benefits of laziness and mitigate the need for excessive copying of arrays.
 
