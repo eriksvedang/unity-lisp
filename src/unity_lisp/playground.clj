@@ -1,13 +1,6 @@
 (use 'unity-lisp.core)
 
 
-;(slurp "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp/hej.clj")
-
-(comment
- (process-file "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp/hej.clj"))
-
-(comment
-  (watch "/Users/erik/Documents/UnityLisp/UnityLispUnity/Assets/Lisp"))
 
 
 (reset-default-macros!)

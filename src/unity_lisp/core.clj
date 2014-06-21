@@ -441,4 +441,8 @@
   (let [path (if (< 0 (count args)) (first args) "./")]
     (watch path)))
 
-
+(comment
+  ;; Eval this code to start compiling the code in the 'lab' project which
+  ;; is used to develop the core library and make sure that everything
+  ;; works in a proper Unity project.
+  (watch "./lab/Assets/Code"))
