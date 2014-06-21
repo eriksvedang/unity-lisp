@@ -35,7 +35,7 @@
      yield = 'yield'
      hint = <'^'> word <whitespace> word
      word = #'[a-zA-Z!?]+[a-zA-Z!?.0-9-<>]*'
-     string = <quote> #'[a-zA-Z!?10-9 ,.:;]*' <quote>
+     string = <quote> #'[a-zA-Z!?10-9 \\-\\+\\=\\>\\<\\{\\}\\'\\[\\],.:;]*' <quote>
      quote = '\"'
      keyword = <':'> word
      keyword-fn = <'λ'> token
@@ -420,7 +420,8 @@
   (let [js-filename (append-subfolder (clj-to-js-path path) out-folder-name)]
     (->> (slurp path)
          lisp->js
-         (str "#pragma strict\n\nimport core;\n\n")
+         (str "import core;\n\n")
+         ; (str "#pragma strict\n\n")
          (spit js-filename))
     (println "Saved" js-filename)))
 

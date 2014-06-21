@@ -1,4 +1,9 @@
-// Copy this file into your Unity project
+//#pragma strict
+
+// --------------------------------------------
+//   The standard library for Unity Lisp
+//   Copy this file into your Unity project
+// --------------------------------------------
 
 static function _add_fn(a, b) { return a + b; }
 static function _sub_fn(a, b) { return a - b; }
@@ -243,6 +248,13 @@ static function map(f : Function, coll1 : IEnumerable, coll2 : IEnumerable, coll
 
 
 
+static function conj(a : Array, item : Object) : Array {
+  var copy = _full_copy_coll(a);
+  copy.Add(item);
+  return copy;
+}
+
+
 static function first(e : IEnumerator) {
   if(e.MoveNext()) {
     return e.Current;
@@ -347,6 +359,11 @@ static function pp(o) {
 	return null;
 }
 
+static function pp(a, b) {
+	print(str(a, b));
+	return null;
+}
+
 static function EnumeratorToArray(e : IEnumerator) {
   var l = new Array();
   while(e.MoveNext()) {
@@ -402,6 +419,12 @@ static function update_in_BANG(m, ks, f) {
   m[ks[(ks.Length - 1)]] = f(m[ks[(ks.Length - 1)]]);
 }
 
+static function update_in(m, ks, f) {
+  var copy = _full_copy_map(m);
+  update_in_BANG(copy, ks, f);
+  return copy;
+}
+
 
 static function keys(m) {
   return m.Keys;
@@ -437,3 +460,5 @@ static function zipmap(ks, vs) {
 static function v3(x, y, z) : Object {
   return new Vector3(x, y, z);
 };
+
+
