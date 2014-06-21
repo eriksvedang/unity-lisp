@@ -6,23 +6,6 @@
             [watchtower.core :refer [watcher extensions rate ignore-dotfiles file-filter on-change]]))
 
 
-;; Macros
-
-(def macros (atom {}))
-
-(defn clear-macros! []
-  (reset! macros []))
-
-(defn add-macro! [macro-name macro-args macro-body]
-  (swap! macros assoc macro-name {:args macro-args :body macro-body}))
-
-(defn get-macro [macro-name]
-  (get @macros macro-name))
-
-(defn reset-default-macros! []
-  (add-macro! "PI" [] [:number "42"]))
-
-
 ;; Parser
 
 (def p
@@ -57,6 +40,24 @@
      keyword = <':'> word
      keyword-fn = <'λ'> token
      comment = #';.*'"))
+
+
+;; Macros
+
+(def macros (atom {}))
+
+(defn clear-macros! []
+  (reset! macros []))
+
+(defn add-macro! [macro-name macro-args macro-body]
+  (swap! macros assoc macro-name {:args macro-args :body macro-body}))
+
+(defn get-macro [macro-name]
+  (get @macros macro-name))
+
+(defn reset-default-macros! []
+  (add-macro! "PI" [] [:number "42"]))
+
 
 
 ;; Js generator helpers
@@ -419,7 +420,7 @@
   (let [js-filename (append-subfolder (clj-to-js-path path) out-folder-name)]
     (->> (slurp path)
          lisp->js
-         (str "import core;\n\n")
+         (str "#pragma strict\n\nimport core;\n\n")
          (spit js-filename))
     (println "Saved" js-filename)))
 
