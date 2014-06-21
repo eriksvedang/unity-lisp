@@ -3,32 +3,10 @@
   (:require [watchtower.core :refer [watcher extensions rate ignore-dotfiles file-filter on-change]]
             [unity-lisp.emit :refer :all]
             [unity-lisp.macros :refer :all]
-            [unity-lisp.parser :refer :all]))
-
-(defn clj-to-js-path [clj-path]
-  (clojure.string/replace clj-path #".clj" ".js"))
-
-(defn ensure-folder [file-path subfolder-name]
-  (let [path-segments (clojure.string/split file-path #"/")
-        all-except-last (drop-last path-segments)
-        sub-path (clojure.string/join "/" all-except-last)
-        new-dir-path (str sub-path "/" subfolder-name)]
-    (if (.mkdir (java.io.File. new-dir-path))
-      (println "Created subfolder at" new-dir-path))
-    ))
-
-(defn append-subfolder [file-path subfolder-name]
-  (let [path-segments (clojure.string/split file-path #"/")
-        last-item (last path-segments)
-        all-except-last (drop-last path-segments)
-        out-path (clojure.string/join "/" all-except-last)]
-    (str out-path "/" subfolder-name "/" last-item)))
+            [unity-lisp.parser :refer :all]
+            [unity-lisp.file-helpers :refer :all]))
 
 (def out-folder-name "out")
-
-(defn guard-for-nil [msg x]
-  (when (nil? x)
-    (println msg)))
 
 (defn trace [x]
   (println x)
@@ -36,7 +14,6 @@
 
 (defn process-file [path]
   (assert (= (class path) java.lang.String))
-  ;(println "Will process Unity Lisp file:" path)
   (if (nil? path)
     (throw (Exception. "Path was nil.")))
   (ensure-folder path out-folder-name)
