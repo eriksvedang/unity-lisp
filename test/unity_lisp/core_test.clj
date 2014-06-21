@@ -8,91 +8,87 @@
 ;;; Parsing
 
 (deftest parse-empty
-  (is (= (p "") [:program])))
+  (is (= (p "") ())))
 
 (deftest parse-symbol
   (is (= (p "beta")
-         [:program [:word "beta"]])))
+         '([:word "beta"]))))
 
 (deftest parse-two-symbols
   (is (= (p "beta gamma")
-         [:program [:word "beta"] [:word "gamma"]])))
+         '([:word "beta"] [:word "gamma"]))))
 
 (deftest parse-numbers
   (is (= (p "1 2 3")
-         [:program [:number "1"] [:number "2"] [:number "3"]])))
-
-(deftest parse-empty-list
-  (is (= (p "")
-         )))
+         '([:number "1"] [:number "2"] [:number "3"]))))
 
 (deftest parse-list-1-element
   (is (= (p "(1)")
-         [:program [:list [:number "1"]]])))
+         '([:list [:number "1"]]))))
 
 (deftest parse-list-3-elements
   (is (= (p "(1 2 3)")
-         [:program [:list [:number "1"] [:number "2"] [:number "3"]]])))
+         '([:list [:number "1"] [:number "2"] [:number "3"]]))))
 
 (deftest parse-fn-call
   (is (= (p "(f x y)")
-         [:program [:list [:word "f"] [:word "x"] [:word "y"]]])))
+         '([:list [:word "f"] [:word "x"] [:word "y"]]))))
 
 (deftest parse-two-lists
   (is (= (p "(1 2) (3 4)")
-         [:program [:list [:number "1"] [:number "2"]] [:list [:number "3"] [:number "4"]]])))
+         '([:list [:number "1"] [:number "2"]] [:list [:number "3"] [:number "4"]]))))
 
 (deftest parse-vector
   (is (= (p "[1 2 3]")
-         [:program [:vector [:number "1"] [:number "2"] [:number "3"]]])))
+         '([:vector [:number "1"] [:number "2"] [:number "3"]]))))
 
 (deftest parse-string
   (is (= (p "\"erik\"")
-         [:program [:string "erik"]])))
+         '([:string "erik"]))))
 
 (deftest parse-string-with-punctuation
   (is (= (p "\".,?!;:\"")
-         [:program [:string ".,?!;:"]])))
+         '([:string ".,?!;:"]))))
 
 (deftest parse-empty-string
-  (is (= (p "\"\"") [:program [:string ""]])))
+  (is (= (p "\"\"") '([:string ""]))))
 
 (deftest parse-map
   (is (= (p "{a 10}")
-         [:program [:map [:word "a"] [:number "10"]]])))
+         '([:map [:word "a"] [:number "10"]]))))
 
 (deftest parse-whitespace
   (is (= (p "erik ; hej pa dig\nsvej")
-         [:program [:word "erik"] [:word "svej"]])))
+         '([:word "erik"] [:word "svej"]))))
 
 (deftest parse-string-with-dot
   (is (= (p "hej.hej")
-         [:program [:word "hej.hej"]])))
+         '([:word "hej.hej"]))))
 
 (deftest parse-negative-number
   (is (= (p "-100")
-         [:program [:number "-100"]])))
+         '([:number "-100"]))))
 
 (deftest parse-accessor
   (is (= (p ".-hej")
-         [:program [:accessor ".-" [:word "hej"]]])))
+         '([:accessor ".-" [:word "hej"]]))))
 
 (deftest parse-keyword
   (is (= (p ":red")
-         [:program [:keyword [:word "red"]]])))
+         '([:keyword [:word "red"]]))))
 
 (deftest parse-yield
   (is (= (p "(yield 50)")
-         [:program [:list [:yield "yield"] [:number "50"]]])))
+         '([:list [:yield "yield"] [:number "50"]]))))
 
 (deftest parse-hint
   (is (= (p "^float x")
-         [:program [:hint [:word "float"] [:word "x"]]])))
+         '([:hint [:word "float"] [:word "x"]]))))
 
-;;; Code generation
+;; ;;; Code generation
 
 
-;; Constants
+;; ;; Constants
 
 (deftest generate-null
   (is (= (lisp->js "nil")

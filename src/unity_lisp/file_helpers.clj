@@ -18,3 +18,7 @@
         all-except-last (drop-last path-segments)
         out-path (clojure.string/join "/" all-except-last)]
     (str out-path "/" subfolder-name "/" last-item)))
+
+(defn trace [x]
+  (println x)
+  x)

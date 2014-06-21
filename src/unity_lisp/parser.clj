@@ -3,7 +3,7 @@
 
 (def p
   (insta/parser
-    "program = <whitespace>* (form <whitespace>*)*
+    "<program> = <whitespace>* (form <whitespace>*)*
      <form> = token | list | vector | map | <comment>
      list = (lparen (<whitespace>* form <whitespace>*)* rparen) | emptylist
      vector = (lsquarebrack form (<whitespace> form)* rsquarebrack) | emptyvec

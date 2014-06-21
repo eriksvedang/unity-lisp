@@ -310,8 +310,7 @@
   [tree]
   (if (= (class tree) instaparse.gll.Failure)
     (str "/*\n" (pr-str tree) "\n*/")
-    (let [[head & forms] tree]
-      (assert (= head :program))
+    (let [forms tree]
       (let [js-forms (map match-form forms)
             with-semicolons (map #(str % ";") js-forms)]
         (clojure.string/join "\n\n" with-semicolons)))))

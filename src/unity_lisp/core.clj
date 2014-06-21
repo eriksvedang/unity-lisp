@@ -8,14 +8,8 @@
 
 (def out-folder-name "out")
 
-(defn trace [x]
-  (println x)
-  x)
-
 (defn process-file [path]
   (assert (= (class path) java.lang.String))
-  (if (nil? path)
-    (throw (Exception. "Path was nil.")))
   (ensure-folder path out-folder-name)
   (let [js-filename (append-subfolder (clj-to-js-path path) out-folder-name)]
     (->> (slurp path)
