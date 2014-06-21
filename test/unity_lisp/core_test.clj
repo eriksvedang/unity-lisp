@@ -1,6 +1,9 @@
 (ns unity-lisp.core-test
   (:require [clojure.test :refer :all]
-            [unity-lisp.core :refer :all]))
+            [unity-lisp.core :refer :all]
+            [unity-lisp.parser :refer :all]
+            [unity-lisp.macros :refer :all]
+            [unity-lisp.emit :refer :all]))
 
 ;;; Parsing
 
