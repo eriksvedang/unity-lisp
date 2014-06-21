@@ -349,6 +349,7 @@
 ;; Macros
 
 (deftest generate-macro-expand-no-args
+  (reset-default-macros!)
   (is (= (lisp->js "(PI)")
          "42;")))
 
