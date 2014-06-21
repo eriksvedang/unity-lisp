@@ -14,7 +14,7 @@ Tries to compile into efficient and readable Unity Script – not overly concern
 lein uberjar
 ```
 * Copy the resulting jar to a folder in your Unity project
-* Also make sure that the 'core.js' file is somewhere in your project folder
+* Also make sure that the 'core.js' file is somewhere in your project folder (it can be found in the 'lab' Unity project included in this repo)
 * Run the jar in a folder with your Unity-lisp files:
 ```bash
 java -jar unity-lisp-0.1.0-standalone.jar
