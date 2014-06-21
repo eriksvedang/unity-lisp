@@ -410,6 +410,12 @@ static function assoc_in_BANG(m, ks, v) {
   m[ks[(ks.Length - 1)]] = v;
 }
 
+static function assoc_in(m, ks, v) {
+  var copy = _full_copy_map(m);
+  assoc_in_BANG(m, ks, v);
+  return copy;
+}
+
 static function update_in_BANG(m, ks, f) {
   var i = 0;
   while(i < (ks.Length - 1)) {
