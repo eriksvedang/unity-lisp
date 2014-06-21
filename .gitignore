@@ -12,5 +12,3 @@ pom.xml.asc
 .lein-repl-history
 .nrepl-port
 
-copy-lib.sh
-run-lib.sh
