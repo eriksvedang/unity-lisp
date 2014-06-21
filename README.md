@@ -9,7 +9,7 @@ Tries to compile into efficient and readable Unity Script – not overly concern
 
 ## Usage
 
-* Clone this repo and compile using [Leiningen](http://leiningen.org/):
+* Clone this repo and compile it using [Leiningen](http://leiningen.org/):
 ```bash
 lein uberjar
 ```
@@ -42,8 +42,10 @@ function Update() {
 }
 ```
 
-### Want more?
-Have a look at the test suit for more examples of what you can do.
+### More examples and tests
+The unity project in the 'lab' directory has lots of little exampes of what you can do. I use that project to develop the core library to go along with this compiler.
+
+You can also have a look at the unit tests (or run them with *lein test*).
 
 
 ## Important details
@@ -56,6 +58,7 @@ Have a look at the test suit for more examples of what you can do.
 * Macros (this is priority #1 right now)
 * List comprehensions (also coming soon)
 * Persistent data structures
+* Destructuring
 * Metadata
 * Very useful libraries like core.async, core.match, etc
 * Lots more...
