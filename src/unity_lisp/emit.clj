@@ -115,7 +115,9 @@
   [body k]
   (seq (filter #(= k %) (flatten body))))
 
-(defn spit-and-return [s]
+(defn spit-and-return
+  "Save a string to the file 'out.js' and then return it."
+  [s]
   (do
     (spit "out.js" s)
     s))
@@ -171,10 +173,6 @@
          [[:word "defvoid"] [:word fn-name] [:vector & args] & body] (match-method-def fn-name args body true)
 
          [[:word "defmacro"] [:word fn-name] [:vector & args] body] (match-macro-def fn-name args body)
-
-;         [[:word "fn"] [:word fn-name] [:vector & args] & body] (named-fn-def fn-name (match-args args) (match-body body false))
-;         [[:word "void"] [:word fn-name] [:vector & args] & body] (named-fn-def fn-name (match-args args) (match-body body true))
-;         [[:word "fn"] [:word "void"] [:word fn-name] [:vector & args] & body] (named-fn-def fn-name (match-args args) (match-body body true))
 
          [[:word "if"] conditional body else-body] (if-statement (match-form conditional) (match-form body) (match-form else-body))
          [[:word "do-if"] conditional body else-body] (do-if-statement (match-form conditional) (match-statement body) (match-statement else-body))
@@ -310,10 +308,9 @@
   [tree]
   (if (= (class tree) instaparse.gll.Failure)
     (str "/*\n" (pr-str tree) "\n*/")
-    (let [forms tree]
-      (let [js-forms (map match-form forms)
-            with-semicolons (map #(str % ";") js-forms)]
-        (clojure.string/join "\n\n" with-semicolons)))))
+    (let [js-forms (map match-form tree)
+          with-semicolons (map #(str % ";") js-forms)]
+      (clojure.string/join "\n\n" with-semicolons))))
 
 (defn lisp->js
   "Convert lisp to js (string -> string)"
