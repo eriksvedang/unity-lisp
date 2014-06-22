@@ -148,12 +148,12 @@
          [[:word "def"] [:word variable] form] (define variable (match-form form))
          [[:word "def"] [:hint & x] form] (define (match-hint x) (match-form form))
          [[:word "def"] [:hint & x]] (define (match-hint x))
-         [[:word "def"] [:word variable]] (str " /* Must use type hints when not assigning var '" variable "' at definition */")
+         [[:word "def"] [:word variable]] (str " ERROR! /* Must use type hints when not assigning var '" variable "' at definition */")
 
          [[:word "def-static"] [:word variable] form] (define-static variable (match-form form))
          [[:word "def-static"] [:hint & x] form] (define-static (match-hint x) (match-form form))
          [[:word "def-static"] [:hint & x]] (define-static (match-hint x))
-         [[:word "def-static"] [:word variable]] (str " /* Must use type hints when not assigning var '" variable "' at definition */")
+         [[:word "def-static"] [:word variable]] (str " ERROR! /* Must use type hints when not assigning var '" variable "' at definition */")
 
          [[:word "set!"] variable form] (assign (match-form variable) (match-form form))
 
@@ -186,12 +186,12 @@
          [[:keyword [:word keyword-name]] obj] (keyword-access keyword-name (match-form obj))
 
          [f & args] (match-fn-or-macro-call f args)
-         :else (str " /* Failed to match list " (str l) " */ ")))
+         :else (str " ERROR! /* Failed to match list " (str l) " */ ")))
 
 (defn macro-call [macro]
   (match-form (get macro :body)))
 
-;:else (str "/* Failed to match macro " macro "*/")))
+;:else (str " ERROR! /* Failed to match macro " macro "*/")))
 
 (defn match-fn-or-macro-call [f args]
   (match f
@@ -240,7 +240,7 @@
 
 (defn match-macro-def [macro-name args body]
   (add-macro! macro-name args body)
-  (str "/* Defined macro " macro-name " */ "))
+  (str " ERROR! /* Defined macro " macro-name " */ "))
 
 (defn match-defn [fn-name args body]
   (if (has-x? body :yield)
@@ -254,7 +254,7 @@
 (defn match-binding [b]
   (match (vec b)
          [[:word variable] form] (define variable (match-form form))
-         :else (str " /* Failed to match binding " b " */ ")))
+         :else (str " ERROR! /* Failed to match binding " b " */ ")))
 
 (defn match-bindings [bindings]
   (clojure.string/join (map #(with-indent (str (match-binding %) ";")) (partition 2 bindings))))
@@ -267,7 +267,7 @@
 (defn match-hint [x]
   (match x
          [[:word h] [:word sym]] (hint h sym)
-         :else (str " /* Failed to match hint (^) " x " */ ")))
+         :else (str " ERROR! /* Failed to match hint (^) " x " */ ")))
 
 (defn match-infix [op]
   (case op
@@ -298,7 +298,7 @@
            [:keyword [:word keyword-name]] (str "\"" keyword-name "\"")
            [:keyword-fn k] (keyword-fn (match-form k))
            [:method "." [:word method-name]] (lone-method-call method-name)
-           :else (str " /* Failed to match form " form " */ ")))
+           :else (str " ERROR! /* Failed to match form " form " */ ")))
 
 
 ;; Putting it all together
@@ -307,7 +307,9 @@
   "Takes an AST (from instaparse) and returns js code as a string"
   [tree]
   (if (= (class tree) instaparse.gll.Failure)
-    (str "/*\n" (pr-str tree) "\n*/")
+    (let [e (str " ERROR! /*\n" (pr-str tree) "\n*/")]
+      (println "Parse error!")
+      e)
     (let [js-forms (map match-form tree)
           with-semicolons (map #(str % ";") js-forms)]
       (clojure.string/join "\n\n" with-semicolons))))

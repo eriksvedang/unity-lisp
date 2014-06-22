@@ -311,6 +311,17 @@ static function ArrayToStr(array : Array) : String {
 	return s;
 }
 
+static function eq(a, b) {
+  if(a == null && b == null) {
+		return true;
+	}
+  else if(a == null || b == null) {
+    return false;
+  }
+
+  return a == b;
+}
+
 static function str(o) : String {
 	if(o == null) {
 		return "nil";
@@ -467,4 +478,13 @@ static function v3(x, y, z) : Object {
   return new Vector3(x, y, z);
 };
 
+
+static function assert(x) : Object {
+  if(!x) {
+    Debug.LogError("Assertion failed: " + x);
+    return false;
+  } else {
+    return true;
+  }
+}
 
